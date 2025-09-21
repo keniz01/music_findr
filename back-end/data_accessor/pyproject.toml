@@ -1,0 +1,45 @@
+[project]
+name = "data-accessor"
+version = "0.2.6"
+description = "Data access solution"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "asyncpg>=0.30.0",
+    "hatch>=1.14.1",
+    "pydantic>=2.11.7",
+    "sqlalchemy[asyncio]>=2.0.42",
+    "sqlparse>=0.5.3",
+    "toml>=0.10.2",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+sources = ["src"]
+
+[tool.hatch.build.targets.wheel]
+packages = ["data_accessor"]
+
+[project.optional-dependencies]
+dev = [
+    "coverage>=7.10.0"
+]
+
+[tool.hatch.envs.dev]
+dependencies = ["data-accessor[dev]"]
+variables = { PYTHONPATH = "src" }
+test = "pytest tests"
+
+[tool.hatch.envs.dev.scripts]
+test = "pytest tests"
+test-changed = "pytest --testmon"
+
+[dependency-groups]
+dev = [
+    "coverage>=7.10.6",
+]
+
+
