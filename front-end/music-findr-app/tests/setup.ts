@@ -1,5 +1,5 @@
 /// <reference types="./types.d.ts" />
-import '@testing-library/jest-dom'
+import "@testing-library/jest-dom";
 
 beforeAll(() => {
   // Add any global test setup here
@@ -7,5 +7,5 @@ beforeAll(() => {
 
 afterEach(() => {
   // Clean up after each test
-  document.body.innerHTML = '';
+  document.body.innerHTML = "";
 });

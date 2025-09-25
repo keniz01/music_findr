@@ -1,12 +1,12 @@
-import React from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import UserQuerySearcher from './components/user-query-searcher';
+import React from "react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import QuerySearchForm from "./components/query-search-form";
 
 const queryClient = new QueryClient();
 
 const App: React.FC = () => (
   <QueryClientProvider client={queryClient}>
-    <UserQuerySearcher />
+    <QuerySearchForm />
   </QueryClientProvider>
 );
 

@@ -1,11 +1,11 @@
-// src/components/SearchForm.tsx
 import React, { useState } from 'react';
-import { Form, Input, Button, Typography, Spin } from 'antd';
+import { Form, Input, Typography, Spin } from 'antd';
 import { useUserQuerySearchApi } from '../hooks/use-user-query-search-api';
+import StyledButton from './styled-button';
 
 const { Text } = Typography;
 
-const UserQuerySearcher: React.FC = () => {
+const QuerySearchForm: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [form] = Form.useForm();
 
@@ -17,18 +17,23 @@ const UserQuerySearcher: React.FC = () => {
 
   return (
     <div style={{ maxWidth: 500, margin: '0 auto', padding: 24 }}>
-      <Form form={form} layout="vertical" onFinish={onFinish}>
+      <Form form={form} layout="vertical" onFinish={onFinish} id="query-search-form">
         <Form.Item
           name="query"
           label="Search Query"
-          rules={[{ required: true, message: 'Please input your query!' }]}
+          id="query-search-input"
+          rules={[{ required: true, message: 'Please input your query!', whitespace: true, min: 3 }]}
         >
           <Input placeholder="Enter your search term" />
         </Form.Item>
         <Form.Item>
-          <Button type="primary" htmlType="submit" loading={isLoading}>
-            Search
-          </Button>
+          <StyledButton
+            type="primary"
+            htmlType="submit"
+            id="query-search-button"
+            text="Search"
+            onClick={function (): void { }}
+          />
         </Form.Item>
       </Form>
 
@@ -50,4 +55,4 @@ const UserQuerySearcher: React.FC = () => {
   );
 };
 
-export default UserQuerySearcher;
+export default QuerySearchForm;
