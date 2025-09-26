@@ -1,8 +1,7 @@
-// src/api/ApiClient.ts
-import axios from "axios";
+import axios, { type InternalAxiosRequestConfig } from "axios";
 
 const ApiClient = axios.create({
-  baseURL: "https://api.example.com", // Replace with your actual API base URL
+  baseURL: "",
   headers: {
     "Content-Type": "application/json",
   },
@@ -10,11 +9,13 @@ const ApiClient = axios.create({
 
 // Request interceptor
 ApiClient.interceptors.request.use(
-  (config) => {
+  (config: InternalAxiosRequestConfig) => {
+    config.maxRedirects = 0;
+    config.headers["Pragma"] = "no-cache";
     console.log("[API Request]", config);
     return config;
   },
-  (error) => {
+  (error: Error) => {
     console.error("[API Request Error]", error);
     return Promise.reject(error);
   },
@@ -26,7 +27,7 @@ ApiClient.interceptors.response.use(
     console.log("[API Response]", response);
     return response;
   },
-  (error) => {
+  (error: Error) => {
     console.error("[API Response Error]", error);
     return Promise.reject(error);
   },

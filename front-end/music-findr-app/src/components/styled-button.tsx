@@ -6,93 +6,78 @@ interface StyledButtonProps {
   htmlType?: "button" | "submit" | "reset";
   Icon?: React.FC;
   id?: string;
-  size?: "small" | "normal" | "large";
-  type: "primary" | "secondary" | "pay" | "branded";
+  size?: "small" | "middle" | "large"; // aligned with AntD sizes
+  type?: "primary" | "ghost" | "dashed" | "link" | "text" | "default";
   text?: string;
   disabled?: boolean;
   hidden?: boolean;
-  onClick: () => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
   onFocus?: () => void;
   loading?: boolean;
 }
 
-const StyledButton = ({
+const StyledButton: React.FC<StyledButtonProps> = ({
   className,
   htmlType = "button",
   Icon,
   id = "",
-  size = "normal",
+  size = "middle",
   text,
-  type,
-  disabled,
-  hidden,
-  onClick,
+  type = "default",
+  disabled = false,
+  hidden = false,
   onMouseEnter,
   onMouseLeave,
   onFocus,
-  loading = false
-}: StyledButtonProps) => {
+  loading = false,
+}) => {
   const defaultClassNames =
     "leading-none rounded-full transition-all duration-300";
 
-  const sizeClassNames = (() => {
-    switch (size) {
-      case "small":
-        return "px-3 py-1";
+  // Map AntD sizes to your padding classes
+  const sizeClassNames =
+    {
+      small: "px-3 py-1",
+      middle: "px-5 py-2",
+      large: "px-6 py-3",
+    }[size] || "";
 
-      case "normal":
-        return "px-5 py-2";
-
-      case "large":
-        return "px-6 py-3";
-
+  // Define your own styles or rely on AntD styles here
+  const typeClassNames =
+    {
+      primary: "text-white bg-portal-secondary hover:bg-portal-mainBlue",
+      ghost: "bg-transparent text-portal-primary hover:bg-gray-100",
+      dashed:
+        "border-dashed border-portal-primary text-portal-primary bg-transparent",
+      link: "text-portal-primary underline hover:text-portal-mainBlue bg-transparent",
+      text: "text-portal-primary bg-transparent hover:bg-gray-100",
       default:
-        return "";
-    }
-  })();
+        "text-portal-primary border border-portal-primary bg-transparent",
+    }[type] || "";
 
-  const typeClassNames = (() => {
-    switch (type) {
-      case "primary":
-        return "text-white bg-portal-secondary hover:bg-portal-mainBlue";
-      case "branded":
-        return [
-          "border",
-          "bg-portal-branding-primary",
-          "hover:bg-portal-branding-secondary",
-          "text-portal-branding-text",
-          "hover:text-portal-branding-textHover",
-          "border-portal-branding-primary",
-          "hover:border-portal-branding-secondary"
-        ].join(" ");
-      case "pay":
-        return `text-gray-500 bg-portal-midGrey ${[
-          "hover:text-portal-branding-text",
-          "hover:bg-portal-branding-secondary"
-        ].join(" ")}`;
-      default:
-        return "text-portal-primary border-portal-primary bg-transparent";
-    }
-  })();
+  const disabledClass = disabled
+    ? "opacity-25 cursor-not-allowed"
+    : "cursor-pointer";
 
-  const disabledClass = (() => {
-    if (disabled) {
-      return "opacity-25 cursor-not-allowed";
-    }
-    return "cursor-pointer";
-  })();
+  const classes = [
+    defaultClassNames,
+    typeClassNames,
+    sizeClassNames,
+    disabledClass,
+    className,
+  ]
+    .filter(Boolean)
+    .join(" ");
 
   return (
     <button
       id={id}
       type={htmlType}
-      onClick={onClick}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
       onFocus={onFocus}
-      className={`${defaultClassNames} ${typeClassNames} ${sizeClassNames} ${disabledClass} ${className}`}
+      className={classes}
       aria-label={text}
       disabled={disabled}
       hidden={hidden}
@@ -101,8 +86,8 @@ const StyledButton = ({
         <LoadingOutlined />
       ) : (
         <>
-          {Icon !== undefined && (
-            <span className="inline-flex">
+          {Icon && (
+            <span className="inline-flex mr-2">
               <Icon />
             </span>
           )}
