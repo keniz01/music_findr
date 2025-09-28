@@ -1,15 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Form, Input, Typography, Spin } from "antd";
-import StyledButton from "./styled-button";
+import { Form, Typography, Spin } from "antd";
 import { useSearchQueryApi } from "../hooks/use-search-query-api";
+import SearchQueryInput from "./search-query-input";
 
 const { Text } = Typography;
 
-const QuerySearchForm: React.FC = () => {
+const SearchQueryForm: React.FC = () => {
   const [form] = Form.useForm();
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const { data, isLoading, isError, error, refetch } = useSearchQueryApi(searchQuery);
+  const { data, isLoading, isError, error, refetch } =
+    useSearchQueryApi(searchQuery);
 
   const onFinish = (values: { searchQueryText: string }) => {
     const trimmedQuery = values.searchQueryText.trim();
@@ -31,26 +32,12 @@ const QuerySearchForm: React.FC = () => {
         layout="vertical"
         onFinish={onFinish}
         id="query-search-form"
-        initialValues={{ query: "" }}
       >
         <Form.Item
           name="searchQueryText"
-          label="Search Query"
-          rules={[
-            { required: true, message: "Please input your query!" },
-            { min: 1, message: "Query must be at least 3 characters" }
-          ]}
+          rules={[{ required: true, message: "Please input your query!" }]}
         >
-          <Input placeholder="Enter your search term" id="search-query-input" />
-        </Form.Item>
-        <Form.Item>
-          <StyledButton
-            type="primary"
-            htmlType="submit"
-            id="query-search-button"
-            text="Search"
-            disabled={isLoading}
-          />
+          <SearchQueryInput onSearch={() => form.submit()} />
         </Form.Item>
       </Form>
 
@@ -72,4 +59,4 @@ const QuerySearchForm: React.FC = () => {
   );
 };
 
-export default QuerySearchForm;
+export default SearchQueryForm;

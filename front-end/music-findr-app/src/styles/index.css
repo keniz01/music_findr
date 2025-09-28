@@ -1,3 +1,69 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+.search-input .ant-input-affix-wrapper,
+.search-input .ant-input-group {
+  border-radius: 9999px !important;
+  background-color: #f3f4f6 !important;
+  border: none !important;
+  padding: 8px 16px;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.search-input .ant-input-group-addon {
+  background-color: #f3f4f6 !important;
+  border-left: none !important;
+}
+
+.search-input .ant-input {
+  background-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border: none !important;
+}
+
+/* Additional focus & hover state overrides */
+.search-input .ant-input-affix-wrapper:focus,
+.search-input .ant-input-affix-wrapper-focused,
+.search-input .ant-input-affix-wrapper:focus-within,
+.search-input .ant-input-affix-wrapper:hover,
+.search-input .ant-input-affix-wrapper:active {
+  box-shadow: none !important;
+  outline: none !important;
+  border: none !important;
+}
+
+.search-input .ant-input:focus {
+  box-shadow: none !important;
+  outline: none !important;
+  border: none !important;
+}
+
+.search-input .ant-input-group-addon {
+  padding: 0 !important;
+  background: transparent !important;
+  border-left: none !important;
+}
+
+.search-input .ant-input-group-addon button {
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  background-color: #3b82f6; /* Tailwind blue-500 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  transition: background-color 0.2s ease;
+}
+
+.search-input .ant-input-group-addon button:hover {
+  background-color: #2563eb; /* Tailwind blue-600 */
+}
+
+.search-input .ant-input-group-addon button .anticon {
+  color: white;
+  font-size: 16px;
+}

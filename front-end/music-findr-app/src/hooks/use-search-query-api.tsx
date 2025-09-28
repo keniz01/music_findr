@@ -7,7 +7,7 @@ export const useSearchQueryApi = (searchQuery: string) => {
 
   const fetchSearchQueryResult = async (): Promise<string | undefined> => {
     const { data } = await apiClient.post<ApiResponse<string>>("/api/search", {
-      query: searchQuery.trim()
+      query: searchQuery.trim(),
     });
 
     if (data?.error) {
