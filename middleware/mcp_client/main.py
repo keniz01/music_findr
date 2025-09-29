@@ -1,8 +1,12 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from src.routes.api import router as hello_router
+from src.routes.search.api import search_router
 
-app = FastAPI()
+app = FastAPI(
+    title="Postgres SQL MCP Client",
+    description="FastApi Postgres SQL MCP Client.",
+    version="1.0.0"    
+)
 
 # Allow requests from Vite's dev server
 origins = [
@@ -19,4 +23,4 @@ app.add_middleware(
 )
 
 # Include the router
-app.include_router(hello_router)
+app.include_router(search_router)
