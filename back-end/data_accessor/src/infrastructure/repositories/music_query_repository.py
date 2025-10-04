@@ -9,9 +9,10 @@ from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio.result import AsyncResult
 from sqlalchemy import text
 
-from data_accessor.src.domain.interfaces.abstract_music_query_repository import AbstractMusicQueryRepository
-from data_accessor.src.domain.exceptions.forbidden_sql_statement_exception import ForbiddenSqlStatementException
-from data_accessor.src.domain.exceptions.sql_statement_execution_exception import SqlStatementExecutionException
+from typing import Dict, Optional
+from ...domain.interfaces.music_query_repository import IMusicQueryRepository
+from ...domain.exceptions.forbidden_sql_statement_exception import ForbiddenSqlStatementException
+from ...domain.exceptions.sql_statement_execution_exception import SqlStatementExecutionException
 
 class SqlSafetyChecker(Protocol):
     def is_safe_select_query(self, query: str) -> bool:
@@ -54,7 +55,7 @@ class DefaultSqlSafetyChecker:
         return True
 
 
-class MusicQueryRepository(AbstractMusicQueryRepository):
+class MusicQueryRepository(IMusicQueryRepository):
     """
     Repository class for music queries.
     """
@@ -71,36 +72,44 @@ class MusicQueryRepository(AbstractMusicQueryRepository):
 
     @asynccontextmanager
     async def get_conn(self, schema_name: str) -> AsyncGenerator[AsyncConnection, None]:
-        conn = await self._engine.connect()
         try:
-            await conn.execute(text(f"SET search_path TO {schema_name}"))
-            yield conn
-        finally:
-            await conn.close()
+            conn = await self._engine.connect()
+            try:
+                await conn.execute(text(f"SET search_path TO {schema_name}"))
+                yield conn
+            finally:
+                await conn.close()
+        except Exception as e:
+            logging.error(f"Error connecting to database: {e}")
+            raise SqlStatementExecutionException(f"Error: {type(e).__name__}: {e}") from e
 
-    async def execute_sql(self, sql: str) -> Union[List[Tuple[Any, ...]], str]:
+    async def execute_sql_statement(self, sql: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         if not self._sql_safety_checker.is_safe_select_query(sql):
             logging.warning(f"Forbidden SQL statement attempted: {sql}")
             raise ForbiddenSqlStatementException("Only simple SELECT statements are allowed.")
 
         try:
             async with self.get_conn(self._default_schema) as conn:
-                result: Union[AsyncResult, CursorResult] = await conn.execute(text(sql))
-                if result.returns_rows:
-                    rows = await result.fetchall()
-                    logging.info(f"SQL executed successfully, returned {len(rows)} rows.")
-                    return rows
-                msg = f"Query executed successfully, {result.rowcount} row(s) affected."
-                logging.info(msg)
-                return msg
+                try:
+                    result: Union[AsyncResult, CursorResult] = await conn.execute(
+                        text(sql),
+                        parameters=params if params else {}
+                    )
+                    if result.returns_rows:
+                        rows = await result.fetchall()
+                        # Convert SQL Alchemy row proxies to dicts
+                        result_dicts = [dict(zip(row._fields, row)) for row in rows]
+                        logging.info(f"SQL executed successfully, returned {len(rows)} rows.")
+                        return result_dicts
+                    return []
+                except Exception as e:
+                    logging.error(f"Error executing SQL statement: {e}")
+                    raise SqlStatementExecutionException(f"Error: {type(e).__name__}: {e}") from e
         except ForbiddenSqlStatementException:
             # already logged above, just re-raise
             raise
-        except Exception as e:
-            logging.error(f"Error executing SQL statement: {e}")
-            raise SqlStatementExecutionException(f"Error: {type(e).__name__}: {e}") from e
 
-    async def fetch_database_schema(self, query_embeddings: list[float]) -> str:
+    async def get_table_schema(self, query_embeddings: list[float]) -> str:
         """
         Fetches the top 4 most similar database schema entries from the 'schema_embeddings' table,
         based on cosine similarity with the given prompt embeddings.

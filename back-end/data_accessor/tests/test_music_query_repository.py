@@ -36,9 +36,19 @@ class TestMusicQueryRepository(unittest.IsolatedAsyncioTestCase):
         self.mock_conn = AsyncMock()
         self.mock_engine.connect.return_value = self.mock_conn
 
+        # Create mock result rows
+        class MockRow:
+            def __init__(self, *values):
+                self._fields = [f"col{i+1}" for i in range(len(values))]
+                self._values = values
+
+            def __iter__(self):
+                return iter(self._values)
+
+        mock_rows = [MockRow("value1"), MockRow("value2")]
         self.mock_result = AsyncMock()
         self.mock_result.returns_rows = True
-        self.mock_result.fetchall = AsyncMock(return_value=[("row1",), ("row2",)])
+        self.mock_result.fetchall.return_value = mock_rows
 
         self.mock_conn.execute.return_value = self.mock_result
         self.mock_conn.close = AsyncMock()
@@ -47,12 +57,13 @@ class TestMusicQueryRepository(unittest.IsolatedAsyncioTestCase):
             engine=self.mock_engine
         )
 
-    async def test_execute_sql_valid(self):
+    async def test_execute_sql_statement_valid(self):
         sql = "SELECT * FROM songs"
-        result = await self.repo.execute_sql(sql)
+        result = await self.repo.execute_sql_statement(sql)
 
         # Verify return result
-        self.assertEqual(result, [("row1",), ("row2",)])
+        expected_result = [{"col1": "value1"}, {"col1": "value2"}]
+        self.assertEqual(result, expected_result)
 
         # Assert execute was called twice: once for search_path, once for query
         self.assertEqual(self.mock_conn.execute.call_count, 2)
@@ -71,19 +82,20 @@ class TestMusicQueryRepository(unittest.IsolatedAsyncioTestCase):
     async def test_execute_sql_forbidden(self):
         sql = "DROP TABLE songs"
         with self.assertRaises(ForbiddenSqlStatementException):
-            await self.repo.execute_sql(sql)
+            await self.repo.execute_sql_statement(sql, None)
 
     async def test_execute_sql_exception(self):
         sql = "SELECT * FROM songs"
-        self.mock_conn.execute.side_effect = Exception("DB failure")
+        self.mock_engine.connect.side_effect = Exception("DB failure")
 
         with self.assertRaises(SqlStatementExecutionException):
-            await self.repo.execute_sql(sql)
+            await self.repo.execute_sql_statement(sql, None)
+            await self.repo.execute_sql_statement(sql)
 
         # Reset side effect for other tests
-            self.mock_conn.execute.side_effect = None
+        self.mock_engine.connect.side_effect = None
 
-    async def test_fetch_database_schema(self):
+    async def test_get_table_schema(self):
         mock_schema_json = '''{
             "album": {
                 "columns": {
@@ -97,7 +109,7 @@ class TestMusicQueryRepository(unittest.IsolatedAsyncioTestCase):
         self.mock_result.fetchall = AsyncMock(return_value=[(mock_schema_json,)])
         self.mock_conn.execute.return_value = self.mock_result
 
-        result = await self.repo.fetch_database_schema([0.1, 0.2, 0.3])
+        result = await self.repo.get_table_schema([0.1, 0.2, 0.3])
 
         expected = (
             "album:\n"

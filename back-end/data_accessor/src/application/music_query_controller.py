@@ -1,27 +1,27 @@
-from data_accessor.src.domain.interfaces.abstract_music_query_service import AbstractMusicQueryService
-from data_accessor.src.application.abstract_music_query_controller import AbstractMusicQueryController
+from typing import List, Dict, Any
+from ..domain.interfaces.music_query_service import IMusicQueryService
 import logging
 
-class MusicQueryController(AbstractMusicQueryController):
+class MusicQueryController:
 
-    def __init__(self, music_query_service: AbstractMusicQueryService) -> None:
+    def __init__(self, music_query_service: IMusicQueryService) -> None:
         """
         Initialize the controller with a service (dependency injection).
         """
         self.music_query_service = music_query_service
 
-    async def fetch_database_schema(self, query_embeddings: list[float]) -> list:
+    async def get_table_schema(self, query_embeddings: List[float]) -> Dict[str, Any]:
         try:
-            schema = await self.music_query_service.fetch_database_schema(query_embeddings)
+            schema = await self.music_query_service.get_table_schema(query_embeddings)
             logging.info("Controller: Fetched database schema.")
             return schema
         except Exception as e:
             logging.error(f"Controller: Error fetching schema: {e}")
             raise
 
-    async def execute_sql(self, sql: str) -> list:
+    async def execute_sql_statement(self, sql: str) -> list:
         try:
-            response = await self.music_query_service.execute_sql(sql)
+            response = await self.music_query_service.execute_sql_statement(sql)
             logging.info("Controller: SQL executed successfully.")
             return response
         except Exception as e:
