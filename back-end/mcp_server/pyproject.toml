@@ -4,4 +4,37 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "fastmcp>=2.12.4",
+    "hatch>=1.14.2",
+    "starlette>=0.48.0",
+    "uvicorn>=0.37.0",
+    "sqlalchemy[asyncio]>=2.0.42",
+    "sqlparse>=0.4.4",
+    "punq>=0.7.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build]
+packages = [
+    "mcp_server",
+    "data_accessor"
+]
+
+[tool.hatch.envs.dev]
+dependencies = [
+  "uvicorn",
+  "pre-commit"
+]
+
+[tool.hatch.envs.dev.scripts]
+setup = [
+  "uv pip install -e .",
+  "pre-commit install",
+  "echo 'Dev environment ready ✅'"
+]
+
+run-mcp-server = "uvicorn mcp_server.src.postgres_server:app --reload --log-level debug"

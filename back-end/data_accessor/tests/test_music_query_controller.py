@@ -1,8 +1,7 @@
 import unittest
-import asyncio
-from unittest.mock import AsyncMock, create_autospec    
-from data_accessor.domain.interfaces.abstract_music_query_service import AbstractMusicQueryService
-from data_accessor.application.music_query_controller import MusicQueryController
+from unittest.mock import AsyncMock, create_autospec
+from src.domain.interfaces.abstract_music_query_service import AbstractMusicQueryService
+from src.application.music_query_controller import MusicQueryController
 
 class TestMusicQueryController(unittest.IsolatedAsyncioTestCase):
     def setUp(self):

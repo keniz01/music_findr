@@ -7,4 +7,4 @@ secrets.toml
 .testmondata
 coverage_html_report
 .coverage
-.coveragerc
+htmlcov

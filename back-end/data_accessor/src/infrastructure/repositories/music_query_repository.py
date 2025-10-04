@@ -9,13 +9,9 @@ from sqlalchemy.engine import CursorResult
 from sqlalchemy.ext.asyncio.result import AsyncResult
 from sqlalchemy import text
 
-from data_accessor.domain.interfaces.abstract_music_query_repository import AbstractMusicQueryRepository
-from data_accessor.domain.exceptions.forbidden_sql_statement_exception import ForbiddenSqlStatementException
-from data_accessor.domain.exceptions.sql_statement_execution_exception import SqlStatementExecutionException
-
-if not __name__.startswith("data_accessor"):
-    raise ImportError("_music_query_repository is internal and cannot be imported directly.")
-
+from data_accessor.src.domain.interfaces.abstract_music_query_repository import AbstractMusicQueryRepository
+from data_accessor.src.domain.exceptions.forbidden_sql_statement_exception import ForbiddenSqlStatementException
+from data_accessor.src.domain.exceptions.sql_statement_execution_exception import SqlStatementExecutionException
 
 class SqlSafetyChecker(Protocol):
     def is_safe_select_query(self, query: str) -> bool:
@@ -104,13 +100,13 @@ class MusicQueryRepository(AbstractMusicQueryRepository):
             logging.error(f"Error executing SQL statement: {e}")
             raise SqlStatementExecutionException(f"Error: {type(e).__name__}: {e}") from e
 
-    async def fetch_database_schema(self, prompt_embeddings: list[float]) -> str:
+    async def fetch_database_schema(self, query_embeddings: list[float]) -> str:
         """
         Fetches the top 4 most similar database schema entries from the 'schema_embeddings' table,
         based on cosine similarity with the given prompt embeddings.
-        
+
         Args:
-            prompt_embeddings (str): The vector embeddings of the prompt.
+            query_embeddings (str): The vector embeddings of the prompt.
 
         Returns:
             str: A human-readable string representation of the schema.
@@ -119,8 +115,8 @@ class MusicQueryRepository(AbstractMusicQueryRepository):
 
         try:
             async with self.get_conn("meta") as conn:
-                embedding_str = f"[{','.join(map(str, prompt_embeddings))}]"
-                result = await conn.execute(query, {"prompt_embeddings": embedding_str})
+                embedding_str = f"[{','.join(map(str, query_embeddings))}]"
+                result = await conn.execute(query, {"query_embeddings": embedding_str})
                 rows = await result.fetchall()
 
             return self._format_schema_rows(rows)
@@ -134,7 +130,7 @@ class MusicQueryRepository(AbstractMusicQueryRepository):
         Builds the SQL query for fetching schema rows by cosine similarity.
         """
         return text("""
-            SELECT raw_json, (embeddings <#> CAST(:prompt_embeddings AS vector)) as cosine_similarity
+            SELECT raw_json, (embeddings <#> CAST(:query_embeddings AS vector)) as cosine_similarity
             FROM schema_embeddings
             ORDER BY cosine_similarity ASC
             LIMIT 4

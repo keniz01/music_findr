@@ -1,10 +1,9 @@
-import asyncio
 import unittest
 from unittest.mock import AsyncMock, patch
 
-from data_accessor.domain.exceptions.forbidden_sql_statement_exception import ForbiddenSqlStatementException
-from data_accessor.domain.exceptions.sql_statement_execution_exception import SqlStatementExecutionException
-from data_accessor.infrastructure.repositories._music_query_repository import DefaultSqlSafetyChecker, MusicQueryRepository
+from src.domain.exceptions.forbidden_sql_statement_exception import ForbiddenSqlStatementException
+from src.domain.exceptions.sql_statement_execution_exception import SqlStatementExecutionException
+from src.infrastructure.repositories.music_query_repository import DefaultSqlSafetyChecker, MusicQueryRepository
 
 class TestDefaultSqlSafetyChecker(unittest.TestCase):
     def setUp(self):
@@ -82,7 +81,7 @@ class TestMusicQueryRepository(unittest.IsolatedAsyncioTestCase):
             await self.repo.execute_sql(sql)
 
         # Reset side effect for other tests
-            self.mock_conn.execute.side_effect = None            
+            self.mock_conn.execute.side_effect = None
 
     async def test_fetch_database_schema(self):
         mock_schema_json = '''{

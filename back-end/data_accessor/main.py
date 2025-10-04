@@ -2,14 +2,14 @@
 import asyncio
 import asyncio
 from sqlalchemy.ext.asyncio import create_async_engine
-from data_accessor.application.music_query_controller import MusicQueryController
-from data_accessor.domain.services._music_query_service import MusicQueryService
-from data_accessor.infrastructure.repositories._music_query_repository import MusicQueryRepository
+from src.application.music_query_controller import MusicQueryController
+from src.domain.services.music_query_service import MusicQueryService
+from src.infrastructure.repositories.music_query_repository import MusicQueryRepository
 
 # Use DatabaseConfig to abstract credentials and connection string
-connection_string = "postgresql+asyncpg://postgres:postgres@localhost:5432/analysis"
+connection_string = "postgresql+asyncpg://postgres:password@localhost:5432/postgres"
 engine = create_async_engine(connection_string)
-repo = MusicQueryRepository(engine=engine)
+repo = MusicQueryRepository(engine=engine, default_schema="analysis")
 service = MusicQueryService(repository=repo)
 controller = MusicQueryController(music_query_service=service)
 

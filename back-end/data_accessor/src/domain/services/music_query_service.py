@@ -1,8 +1,5 @@
-# INTERNAL MODULE: Not for direct import outside data_accessor
-if not __name__.startswith("data_accessor"): raise ImportError("_music_query_service is internal and cannot be imported directly.")
-
-from data_accessor.domain.interfaces.abstract_music_query_repository import AbstractMusicQueryRepository
-from data_accessor.domain.interfaces.abstract_music_query_service import AbstractMusicQueryService
+from data_accessor.src.domain.interfaces.abstract_music_query_repository import AbstractMusicQueryRepository
+from data_accessor.src.domain.interfaces.abstract_music_query_service import AbstractMusicQueryService
 import logging
 
 class MusicQueryService(AbstractMusicQueryService):
@@ -25,9 +22,9 @@ class MusicQueryService(AbstractMusicQueryService):
             logging.error(f"Service: Error executing SQL: {e}")
             raise
 
-    async def fetch_database_schema(self, prompt_embeddings: list[float]) -> list:
+    async def fetch_database_schema(self, query_embeddings: list[float]) -> list:
         try:
-            schema = await self.repository.fetch_database_schema(prompt_embeddings)
+            schema = await self.repository.fetch_database_schema(query_embeddings)
             logging.info("Service: Fetched database schema.")
             return schema
         except Exception as e:

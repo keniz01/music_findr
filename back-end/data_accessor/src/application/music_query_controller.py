@@ -1,16 +1,18 @@
-from data_accessor.domain.interfaces.abstract_music_query_service import AbstractMusicQueryService
+from data_accessor.src.domain.interfaces.abstract_music_query_service import AbstractMusicQueryService
+from data_accessor.src.application.abstract_music_query_controller import AbstractMusicQueryController
 import logging
 
-class MusicQueryController:
+class MusicQueryController(AbstractMusicQueryController):
+
     def __init__(self, music_query_service: AbstractMusicQueryService) -> None:
         """
         Initialize the controller with a service (dependency injection).
         """
         self.music_query_service = music_query_service
 
-    async def fetch_database_schema(self, prompt_embeddings: list[float]) -> list:
+    async def fetch_database_schema(self, query_embeddings: list[float]) -> list:
         try:
-            schema = await self.music_query_service.fetch_database_schema(prompt_embeddings)
+            schema = await self.music_query_service.fetch_database_schema(query_embeddings)
             logging.info("Controller: Fetched database schema.")
             return schema
         except Exception as e:

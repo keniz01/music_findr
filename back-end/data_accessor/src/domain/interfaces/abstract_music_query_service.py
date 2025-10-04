@@ -6,21 +6,21 @@ class AbstractMusicQueryService(ABC):
     This class defines the interface for executing SQL queries and fetching database schema.
     """
     @abstractmethod
-    async def execute_sql(self, sql: str) -> list:
+    async def execute_sql_statement(self, sql_statement: str) -> list:
         """
         Execute a SQL query and return the results.
 
-        :param sql: The SQL query to execute.
+        :param sql_statement: The SQL query to execute.
         :return: A list of results from the query.
         """
         raise NotImplementedError("This method should be overridden by subclasses.")
-    
+
     @abstractmethod
-    async def fetch_database_schema(self, prompt_embeddings: list[float]) -> list:
+    async def get_table_schema(self, query_embeddings: list[float]) -> list:
         """
         Fetch the database schema for a given schema name.
 
-        :param prompt_embeddings: Prompt embeddings.
+        :param query_embeddings: Query embeddings.
         :return: A list of tables and their columns in the schema.
         """
         raise NotImplementedError("This method should be overridden by subclasses.")

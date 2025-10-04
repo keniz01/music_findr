@@ -1,9 +1,8 @@
 import unittest
-import asyncio
 from unittest.mock import AsyncMock, MagicMock
 
-from data_accessor.domain.interfaces.abstract_music_query_repository import AbstractMusicQueryRepository
-from data_accessor.domain.services._music_query_service import MusicQueryService
+from src.domain.interfaces.abstract_music_query_repository import AbstractMusicQueryRepository
+from src.domain.services.music_query_service import MusicQueryService
 
 class TestMusicQueryService(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
