@@ -2,6 +2,7 @@ from datetime import datetime
 from punq import Container
 from fastmcp import FastMCP
 from fastmcp.tools import Tool
+from sqlalchemy.ext.asyncio import create_async_engine
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from fastmcp.server.middleware.timing import TimingMiddleware
@@ -12,24 +13,32 @@ from fastmcp.server.middleware.rate_limiting import (
     SlidingWindowRateLimitingMiddleware
 )
 
-from .abstract_postgres_server import AbstractPostgresServer
-from data_accessor.src.domain.interfaces.abstract_music_query_service import AbstractMusicQueryService
-from data_accessor.src.domain.interfaces.abstract_music_query_repository import AbstractMusicQueryRepository
+from src.interfaces.postgres_server import IPostgresServer
+from data_accessor.src.domain.interfaces.music_query_service import IMusicQueryService
+from data_accessor.src.domain.interfaces.music_query_repository import IMusicQueryRepository
 from data_accessor.src.domain.services.music_query_service import MusicQueryService
-from data_accessor.src.application.music_query_controller import MusicQueryController, AbstractMusicQueryController
+from data_accessor.src.application.interfaces.music_query_controller import IMusicQueryController
+from data_accessor.src.application.controllers.music_query_controller import MusicQueryController
 from data_accessor.src.infrastructure.repositories.music_query_repository import MusicQueryRepository
 
 # Set up the dependency injection container
 container = Container()
-container.register(MusicQueryRepository, instance=MusicQueryRepository(
-    "analysis", "postgresql+asyncpg://postgres:password@localhost:5432/postgres"
-))
-container.register(AbstractMusicQueryRepository, MusicQueryRepository)
-container.register(AbstractMusicQueryService, MusicQueryService)
-container.register(AbstractMusicQueryController, MusicQueryController)
 
-# Resolve the controller via the container
-controller = container.resolve(AbstractMusicQueryController)
+# Configure database
+connection_string = "postgresql+asyncpg://postgres:password@localhost:5432/postgres"
+engine = create_async_engine(connection_string)
+
+# Create and register repository
+repo = MusicQueryRepository(engine=engine, default_schema="analysis")
+container.register(IMusicQueryRepository, instance=repo)
+
+# Create and register service
+service = MusicQueryService(repository=repo)
+container.register(IMusicQueryService, instance=service)
+
+# Create and register controller
+controller = MusicQueryController(music_query_service=service)
+container.register(IMusicQueryController, instance=controller)
 
 mcp = FastMCP(
     name="Postgres MCP Server",
@@ -53,11 +62,10 @@ mcp.add_middleware(SlidingWindowRateLimitingMiddleware(
     window_minutes=1
 ))
 
-class PostgresServer(AbstractPostgresServer):
+class PostgresServer(IPostgresServer):
 
     def __init__(self):
-        # Inject controller into the server instance
-        self.controller = controller
+        self.controller = container.resolve(IMusicQueryController)
 
     @mcp.tool()
     async def get_table_schema(self, user_query: str) -> list:

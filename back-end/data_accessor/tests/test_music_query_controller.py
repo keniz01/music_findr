@@ -1,11 +1,11 @@
 import unittest
 from unittest.mock import AsyncMock, create_autospec
-from src.domain.interfaces.abstract_music_query_service import AbstractMusicQueryService
-from src.application.music_query_controller import MusicQueryController
+from src.domain.interfaces.music_query_service import IMusicQueryService
+from src.application.controllers.music_query_controller import MusicQueryController
 
 class TestMusicQueryController(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
-        self.mock_service = create_autospec(AbstractMusicQueryService, instance=True)
+        self.mock_service = create_autospec(IMusicQueryService, instance=True)
         self.mock_service.get_table_schema = AsyncMock()
         self.mock_service.execute_sql_statement = AsyncMock()
         self.controller = MusicQueryController(self.mock_service)

@@ -12,6 +12,7 @@ dependencies = [
     "sqlalchemy[asyncio]>=2.0.42",
     "sqlparse>=0.5.3",
     "toml>=0.10.2",
+    "uvicorn>=0.37.0",
 ]
 
 [build-system]

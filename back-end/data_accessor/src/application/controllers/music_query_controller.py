@@ -1,8 +1,9 @@
 from typing import List, Dict, Any
-from ..domain.interfaces.music_query_service import IMusicQueryService
+from ...domain.interfaces.music_query_service import IMusicQueryService
+from ...application.interfaces.music_query_controller import IMusicQueryController
 import logging
 
-class MusicQueryController:
+class MusicQueryController(IMusicQueryController):
 
     def __init__(self, music_query_service: IMusicQueryService) -> None:
         """

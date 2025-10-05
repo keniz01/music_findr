@@ -13,6 +13,7 @@ from typing import Dict, Optional
 from ...domain.interfaces.music_query_repository import IMusicQueryRepository
 from ...domain.exceptions.forbidden_sql_statement_exception import ForbiddenSqlStatementException
 from ...domain.exceptions.sql_statement_execution_exception import SqlStatementExecutionException
+from ...infrastructure.repositories.exception_handlers import raise_sql_execution_exception
 
 class SqlSafetyChecker(Protocol):
     def is_safe_select_query(self, query: str) -> bool:
@@ -81,33 +82,29 @@ class MusicQueryRepository(IMusicQueryRepository):
                 await conn.close()
         except Exception as e:
             logging.error(f"Error connecting to database: {e}")
-            raise SqlStatementExecutionException(f"Error: {type(e).__name__}: {e}") from e
+            raise_sql_execution_exception("Error connecting to database", e, include_traceback=True)
 
     async def execute_sql_statement(self, sql: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         if not self._sql_safety_checker.is_safe_select_query(sql):
             logging.warning(f"Forbidden SQL statement attempted: {sql}")
             raise ForbiddenSqlStatementException("Only simple SELECT statements are allowed.")
 
-        try:
-            async with self.get_conn(self._default_schema) as conn:
-                try:
-                    result: Union[AsyncResult, CursorResult] = await conn.execute(
-                        text(sql),
-                        parameters=params if params else {}
-                    )
-                    if result.returns_rows:
-                        rows = await result.fetchall()
-                        # Convert SQL Alchemy row proxies to dicts
-                        result_dicts = [dict(zip(row._fields, row)) for row in rows]
-                        logging.info(f"SQL executed successfully, returned {len(rows)} rows.")
-                        return result_dicts
-                    return []
-                except Exception as e:
-                    logging.error(f"Error executing SQL statement: {e}")
-                    raise SqlStatementExecutionException(f"Error: {type(e).__name__}: {e}") from e
-        except ForbiddenSqlStatementException:
-            # already logged above, just re-raise
-            raise
+        async with self.get_conn(self._default_schema) as conn:
+            try:
+                result: Union[AsyncResult, CursorResult] = await conn.execute(
+                    text(sql),
+                    parameters=params if params else {}
+                )
+                if result.returns_rows:
+                    rows = await result.fetchall()
+                    # Convert SQL Alchemy row proxies to dicts
+                    result_dicts = [dict(zip(row._fields, row)) for row in rows]
+                    logging.info(f"SQL executed successfully, returned {len(rows)} rows.")
+                    return result_dicts
+                return []
+            except Exception as e:
+                logging.error(f"Error executing SQL statement: {e}")
+                raise_sql_execution_exception("Error connecting to database", e, include_traceback=True)
 
     async def get_table_schema(self, query_embeddings: list[float]) -> str:
         """
@@ -132,7 +129,10 @@ class MusicQueryRepository(IMusicQueryRepository):
 
         except Exception as e:
             logging.error(f"Error fetching database schema: {e}", exc_info=True)
-            raise SqlStatementExecutionException(f"Error: {type(e).__name__}: {e}")
+            raise SqlStatementExecutionException(f"""
+                                                    Error fetching database schema: {type(e).__name__}
+                                                    Exception: {e}
+                                                    """) from e
 
     def _build_similarity_query(self) -> text:
         """

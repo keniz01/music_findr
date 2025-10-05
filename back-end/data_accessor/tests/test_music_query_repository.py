@@ -1,5 +1,5 @@
 import unittest
-from unittest.mock import AsyncMock, patch
+from unittest.mock import AsyncMock
 
 from src.domain.exceptions.forbidden_sql_statement_exception import ForbiddenSqlStatementException
 from src.domain.exceptions.sql_statement_execution_exception import SqlStatementExecutionException

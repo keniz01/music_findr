@@ -1,0 +1,6 @@
+[run]
+source = tests
+
+[report]
+omit =
+    */__init__.py
