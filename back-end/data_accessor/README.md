@@ -1,12 +1,10 @@
 # postgres_data_accessor
 
-
 ## Solution Architecture
 
 Below is a high-level architecture diagram for the solution:
 
 ### Layered Architecture
-
 
 ```
  +---------------------------+
@@ -33,8 +31,8 @@ Below is a high-level architecture diagram for the solution:
  +---------------------------+
 ```
 
-
 **Description:**
+
 - **Application Layer (Controller):** Handles incoming requests and delegates to the domain layer. Acts as the entry point for client/API interactions.
 - **Domain Layer (Service, Interfaces, Models, Exceptions):** Contains business logic, domain models, interfaces, and exception handling. Responsible for core functionality and rules.
 - **Infrastructure Layer (Repository, DB Config):** Implements data access, repository pattern, and configuration management. Interacts directly with the PostgreSQL database.
@@ -43,10 +41,11 @@ Below is a high-level architecture diagram for the solution:
 ---
 
 > For a more detailed diagram, you can add an image:
-> 
+>
 > ![Solution Architecture](docs/solution_architecture.png)
 
 ---
+
 ## Overview
 
 `postgres_data_accessor` is a Python package for safe, asynchronous SQL query execution and schema access on PostgreSQL databases. It provides a layered architecture (Repository, Service, Controller) for clean separation of concerns, dependency injection, and robust exception handling. The package includes comprehensive test coverage and supports both Windows and Unix-based systems.
@@ -56,6 +55,7 @@ Below is a high-level architecture diagram for the solution:
 ## Package Distribution & Setup
 
 ### Build the Package
+
 Build the package using [uv](https://github.com/astral-sh/uv):
 
 ```sh
@@ -63,6 +63,7 @@ uv build
 ```
 
 ### Serve the Package Locally
+
 Start a local HTTP server to distribute the built package:
 
 ```sh
@@ -70,6 +71,7 @@ cd dist && python -m http.server 8080
 ```
 
 ### Install the Package on a Client
+
 Install from your local server:
 
 ```sh
@@ -77,6 +79,7 @@ uv add --find-links http://localhost:8080 --index https://pypi.org/simple data_a
 ```
 
 ### Remove the Installed Package
+
 Uninstall if needed:
 
 ```sh
@@ -86,6 +89,7 @@ uv remove data_accessor
 ## Configuration
 
 ### Database Configuration
+
 Configuration can be done via TOML file (`secrets.toml`):
 
 ```toml
@@ -114,6 +118,7 @@ config = DatabaseConfig(
 ```
 
 ### Error Handling
+
 The package provides several custom exceptions:
 
 ```python
@@ -130,11 +135,12 @@ except Exception as e:
     logger.error(f"Unexpected error: {e}")
 ```
 
-
 ## Running Unit Tests
+
 The project uses Python's built-in unittest framework with async support and includes code coverage metrics.
 
 ### Setting Up the Environment
+
 Create and activate a virtual environment:
 
 ```sh
@@ -148,6 +154,7 @@ source .venv/bin/activate
 ```
 
 Install the package in development mode:
+
 ```sh
 uv pip install -e .
 ```
@@ -157,16 +164,19 @@ uv pip install -e .
 There are several ways to run the tests:
 
 1. Using the test runner script (with coverage):
+
 ```sh
 python tests/run_tests.py
 ```
 
 2. Using unittest directly:
+
 ```sh
 PYTHONPATH=src python -m unittest discover tests/ -v
 ```
 
 3. Using coverage manually:
+
 ```sh
 coverage run -m unittest discover tests/
 coverage report
@@ -184,7 +194,6 @@ The project includes code coverage metrics using coverage.py. The current covera
   - Infrastructure Layer: ~41%
 
 A detailed HTML coverage report is generated in the `coverage_html_report` directory after running tests with coverage.
-
 
 ## Example Usage
 
@@ -206,6 +215,7 @@ async def main():
 
 asyncio.run(main())
 ```
+
 ---
 
 ## Advanced Usage
@@ -257,6 +267,7 @@ custom_controller = MusicQueryController(music_query_service=custom_service)
 ---
 
 ## Internal API Restriction
+
 - Only import `MusicQueryController` from the package root: `from data_accessor import MusicQueryController`
 - Internal modules (`_music_query_service.py`, `_music_query_repository.py`) are not intended for direct use and will raise an ImportError if imported outside the package context.
 
@@ -265,6 +276,7 @@ custom_controller = MusicQueryController(music_query_service=custom_service)
 ## Technical Details
 
 ### Dependencies
+
 - Python >=3.12
 - Core dependencies:
   - asyncpg>=0.30.0 - Asynchronous PostgreSQL driver
@@ -274,6 +286,7 @@ custom_controller = MusicQueryController(music_query_service=custom_service)
   - toml>=0.10.2 - Configuration file parsing
 
 ### Package Structure
+
 ```
 src/data_accessor/
 ├── application/           # Application layer
@@ -290,6 +303,7 @@ src/data_accessor/
 ```
 
 ### Key Features
+
 1. **Asynchronous Operations**
    - All database operations are async/await compatible
    - Connection pooling for efficient resource utilization
@@ -311,12 +325,14 @@ src/data_accessor/
    - Runtime type checking
 
 ### Performance Considerations
+
 - Connection pooling via asyncpg
 - Prepared statement caching
 - Lazy loading of database schemas
 - Efficient query parsing using sqlparse
 
 ### Security
+
 1. **Query Validation**
    - SQL statement type checking
    - Prevention of data modification statements
@@ -328,12 +344,14 @@ src/data_accessor/
    - Connection string validation
 
 ### Logging and Monitoring
+
 - Built-in logging with configurable levels
 - SQL statement logging for debugging
 - Performance metrics logging
 - Exception tracking and reporting
 
 ### Best Practices
+
 1. **Usage Guidelines**
    - Always use the public API (`MusicQueryController`)
    - Implement proper error handling
@@ -353,6 +371,7 @@ src/data_accessor/
    - Use proper SQL formatting
 
 ### Known Limitations
+
 - Only supports PostgreSQL databases
 - SELECT statements only (by design)
 - Python 3.12+ required
