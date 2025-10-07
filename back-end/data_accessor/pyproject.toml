@@ -1,12 +1,11 @@
 [project]
-name = "data-accessor"
-version = "0.2.6"
+name = "data_accessor"
+version = "0.2.7"
 description = "Data access solution"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "asyncpg>=0.30.0",
-    "hatch>=1.14.1",
     "punq>=0.7.0",
     "pydantic>=2.11.7",
     "sqlalchemy[asyncio]>=2.0.42",
@@ -15,45 +14,75 @@ dependencies = [
     "uvicorn>=0.37.0",
 ]
 
+[tool.hatch.metadata]
+allow-direct-references = true
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build]
-sources = ["src"]
-packages = ["data_accessor"]
-
-[tool.hatch.build.targets.wheel]
-packages = ["data_accessor"]
+packages = ["src/data_accessor"]
+exclude = [
+    "__pycache__",
+]
 
 [project.optional-dependencies]
 dev = [
-    "coverage>=7.10.0"
+    "coverage>=7.10.0",
+    "black>=23.11.0",
+    "isort>=5.12.0",
+    "mypy>=1.7.0"
 ]
 
 [tool.hatch.envs.dev]
-dependencies = []
+dependencies = [
+    "coverage>=7.10.0",
+    "black>=23.11.0",
+    "isort>=5.12.0",
+    "mypy>=1.7.0"
+]
 variables = { PYTHONPATH = "src" }
 
 [tool.hatch.envs.dev.scripts]
-all = """
-python -m coverage erase && \
-python -m coverage run -m unittest discover -s tests -v && \
-python -m coverage report && \
-python -m coverage html && \
-python -m webbrowser -t htmlcov/index.html
-"""
-# Run unit tests with detailed output and coverage
 test = """
 python -m coverage run -m unittest discover -s tests -v && \
 python -m coverage report
 """
+lint = "black src tests && isort src tests"
+typecheck = "mypy src tests"
+format = "black src tests && isort src tests"
+all = "hatch run dev:format && hatch run dev:typecheck && hatch run dev:test"
 # Show terminal report only
 coverage-report = "python -m coverage report"
 # Generate HTML report
 coverage-html = "python -m coverage html"
 # Clean up coverage files
 coverage-clean = "python -m coverage erase"
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "raise ImportError"
+]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.isort]
+profile = "black"
+line_length = 100
+multi_line_output = 3
 
 [dependency-groups]
 dev = [

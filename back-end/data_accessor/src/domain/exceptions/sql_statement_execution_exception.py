@@ -1,7 +1,7 @@
-class SqlStatementExecutionException(Exception):
-    def __init__(self, message: str) -> None:
-        self.message = message
-        super().__init__(message)
+"""Alias module exposing SqlStatementExecutionException under src.domain.exceptions."""
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__}: {self.message}"
+from src.data_accessor.domain.exceptions.sql_statement_execution_exception import (  # noqa: F401
+    SqlStatementExecutionException,
+)
+
+__all__ = ["SqlStatementExecutionException"]

@@ -14,6 +14,8 @@ dependencies = [
     "punq>=0.7.0",
     "asyncpg>=0.30.0",
     "mcp[cli]>=1.16.0",
+    "httpx>=0.28.1",
+    "data_accessor>=0.2.6",
 ]
 
 [build-system]
@@ -25,54 +27,53 @@ packages = ["src"]
 
 [tool.hatch.envs.dev]
 dependencies = [
-    # Runtime dependencies
-    "fastmcp>=2.12.4",
-    "starlette>=0.48.0",
-    "uvicorn>=0.37.0",
-    "sqlalchemy[asyncio]>=2.0.42",
-    "sqlparse>=0.4.4",
-    "punq>=0.7.0",
-    "asyncpg>=0.30.0",
-    # Development dependencies
     "coverage>=7.3.2",
     "pre-commit>=3.5.0",
     "black>=23.11.0",
     "isort>=5.12.0",
-    "mypy>=1.7.0",
+    "mypy>=1.7.0"
 ]
+
+[tool.hatch.envs.dev.env-vars]
+PYTHONPATH = "src;../data_accessor"
 
 [tool.hatch.envs.dev.scripts]
-# Development environment setup
-setup = [
-    "pip install -e ../data_accessor",  # Install data_accessor in editable mode
-    "pip install -e .",                 # Install mcp_server in editable mode
-    "pre-commit install",               # Install git hooks
-]
-
-# Server commands
-serve = "uvicorn src.postgres_server:app --reload --log-level debug"
-serve-prod = "uvicorn src.postgres_server:app --workers 4"
-
-# Test commands
 test = """
 python -m coverage run -m unittest discover -s tests -v && \
 python -m coverage report
 """
-coverage-report = "coverage html"
-test-with-coverage = [
-    "coverage run -m unittest discover -v -s tests",
-    "coverage html"
+lint = "black src tests && isort src tests"
+typecheck = "mypy src tests"
+format = "black src tests && isort src tests"
+all = "hatch run dev:format && hatch run dev:typecheck && hatch run dev:test"
+# Show terminal report only
+coverage-report = "python -m coverage report"
+# Generate HTML report
+coverage-html = "python -m coverage html"
+# Clean up coverage files
+coverage-clean = "python -m coverage erase"
+serve = "uvicorn main:app --reload --log-level debug --port 8000"
+
+[tool.hatch.envs.dev.post-install]
+commands = [
+    "uv pip install -e ../data_accessor",
+    "uv pip install -e .",
+    "pre-commit install"
 ]
 
-# Code quality commands
-lint = [
-    "black .",
-    "isort .",
-    "mypy src tests",
-]
-format = [
-    "black .",
-    "isort .",
+[tool.coverage.run]
+source = ["src"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "raise NotImplementedError",
+    "if __name__ == '__main__':",
+    "pass",
+    "raise ImportError"
 ]
 
 [tool.black]

@@ -1,30 +1,7 @@
-from typing import List, Dict, Any
-from ...domain.interfaces.music_query_service import IMusicQueryService
-from ...application.interfaces.music_query_controller import IMusicQueryController
-import logging
+"""Alias to expose MusicQueryController under src.application.controllers."""
 
-class MusicQueryController(IMusicQueryController):
+from src.data_accessor.application.controllers.music_query_controller import (  # noqa: F401
+    MusicQueryController,
+)
 
-    def __init__(self, music_query_service: IMusicQueryService) -> None:
-        """
-        Initialize the controller with a service (dependency injection).
-        """
-        self.music_query_service = music_query_service
-
-    async def get_table_schema(self, query_embeddings: List[float]) -> Dict[str, Any]:
-        try:
-            schema = await self.music_query_service.get_table_schema(query_embeddings)
-            logging.info("Controller: Fetched database schema.")
-            return schema
-        except Exception as e:
-            logging.error(f"Controller: Error fetching schema: {e}")
-            raise
-
-    async def execute_sql_statement(self, sql: str) -> list:
-        try:
-            response = await self.music_query_service.execute_sql_statement(sql)
-            logging.info("Controller: SQL executed successfully.")
-            return response
-        except Exception as e:
-            logging.error(f"Controller: Error executing SQL: {e}")
-            raise
+__all__ = ["MusicQueryController"]

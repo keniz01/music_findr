@@ -1,7 +1,7 @@
-class ForbiddenSqlStatementException(Exception):
-    def __init__(self, message: str) -> None:
-        self.message = message
-        super().__init__(message)
+"""Alias module exposing ForbiddenSqlStatementException under src.domain.exceptions."""
 
-    def __repr__(self) -> str:
-        return f"{self.__class__.__name__} [{self.message}]"
+from src.data_accessor.domain.exceptions.forbidden_sql_statement_exception import (  # noqa: F401
+    ForbiddenSqlStatementException,
+)
+
+__all__ = ["ForbiddenSqlStatementException"]

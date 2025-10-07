@@ -1,5 +1,20 @@
 .DS_Store
 
-# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+
+.vs
+
+.venv
+*.egg-info
+
+__pycache__/
+dist/
+secrets.toml
+.pytest_cache/
+.vscode/
+.testmondata
+coverage_html_report
+.coverage
+htmlcov
+.vs/slnx.sqlite

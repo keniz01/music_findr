@@ -1,4 +1,4 @@
-# postgres_data_accessor
+# data_accessor
 
 ## Solution Architecture
 
@@ -48,7 +48,7 @@ Below is a high-level architecture diagram for the solution:
 
 ## Overview
 
-`postgres_data_accessor` is a Python package for safe, asynchronous SQL query execution and schema access on PostgreSQL databases. It provides a layered architecture (Repository, Service, Controller) for clean separation of concerns, dependency injection, and robust exception handling. The package includes comprehensive test coverage and supports both Windows and Unix-based systems.
+`data_accessor` is a Python package for safe, asynchronous SQL query execution and schema access on PostgreSQL databases. It provides a layered architecture (Repository, Service, Controller) for clean separation of concerns, dependency injection, and robust exception handling. The package includes comprehensive test coverage and supports both Windows and Unix-based systems.
 
 ---
 
@@ -105,16 +105,9 @@ schema = "public"  # default schema
 Or programmatically:
 
 ```python
-from data_accessor.infrastructure.database_config import DatabaseConfig
-
-config = DatabaseConfig(
-    host="localhost",
-    port=5432,
-    database="your_database",
-    user="your_user",
-    password="your_password",
-    schema="public"
-)
+# Configure your SQLAlchemy async engine directly when constructing the repository
+from sqlalchemy.ext.asyncio import create_async_engine
+engine = create_async_engine("postgresql+asyncpg://user:password@localhost/dbname")
 ```
 
 ### Error Handling
@@ -203,14 +196,15 @@ Below is a minimal example of how to use the package in your code:
 
 ```python
 from sqlalchemy.ext.asyncio import create_async_engine
+from data_accessor import MusicQueryController, MusicQueryService, MusicQueryRepository
 
 engine = create_async_engine("postgresql+asyncpg://user:password@localhost/dbname")
-repo = MusicQueryRepository(schema_name="public", engine=engine)
+repo = MusicQueryRepository(default_schema="public", engine=engine)
 service = MusicQueryService(repository=repo)
 controller = MusicQueryController(music_query_service=service)
 
 async def main():
-    result = await controller.execute_sql("SELECT * FROM music_table")
+    result = await controller.execute_sql_statement("SELECT * FROM music_table")
     print(result)
 
 asyncio.run(main())
@@ -227,8 +221,8 @@ The package supports semantic schema retrieval using vector embeddings. When fet
 ```python
 async def fetch_schema():
     # The embeddings vector represents your schema query
-    embeddings = "[-0.5179322957992554, 0.654964804649353, ...]"  # 384-dimensional vector
-    schema = await controller.fetch_database_schema(embeddings)
+    embeddings = [-0.51, 0.65, ...]  # vector of floats
+    schema = await controller.get_table_schema(embeddings)
     print("Database Schema:\n", schema)
 
 asyncio.run(fetch_schema())
@@ -266,10 +260,10 @@ custom_controller = MusicQueryController(music_query_service=custom_service)
 
 ---
 
-## Internal API Restriction
+## Public API
 
-- Only import `MusicQueryController` from the package root: `from data_accessor import MusicQueryController`
-- Internal modules (`_music_query_service.py`, `_music_query_repository.py`) are not intended for direct use and will raise an ImportError if imported outside the package context.
+- Import from the package root: `from data_accessor import MusicQueryController, MusicQueryService, MusicQueryRepository`
+- Domain interfaces and exceptions can be imported from their subpackages if needed for typing and tests.
 
 ---
 
@@ -291,15 +285,24 @@ custom_controller = MusicQueryController(music_query_service=custom_service)
 src/data_accessor/
 ├── application/           # Application layer
 │   ├── __init__.py
-│   └── music_query_controller.py
+│   ├── controllers/
+│   │   └── music_query_controller.py
+│   └── interfaces/
+│       └── music_query_controller.py
 ├── domain/               # Domain layer
-│   ├── exceptions/       # Custom exceptions
-│   ├── interfaces/       # Abstract base classes
-│   ├── models/          # Domain models
-│   └── services/        # Business logic
+│   ├── __init__.py
+│   ├── exceptions/
+│   │   ├── forbidden_sql_statement_exception.py
+│   │   └── sql_statement_execution_exception.py
+│   ├── interfaces/
+│   │   ├── music_query_repository.py
+│   │   └── music_query_service.py
+│   └── services/
+│       └── music_query_service.py
 └── infrastructure/       # Infrastructure layer
-    ├── database_config.py
-    └── repositories/     # Data access
+    ├── __init__.py
+    └── repositories/
+        └── music_query_repository.py
 ```
 
 ### Key Features
