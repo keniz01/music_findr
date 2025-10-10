@@ -1,7 +1,9 @@
 import unittest
 from unittest.mock import AsyncMock, create_autospec
-from src.domain.interfaces.music_query_service import IMusicQueryService
+
 from src.application.controllers.music_query_controller import MusicQueryController
+from src.domain.interfaces.music_query_service import IMusicQueryService
+
 
 class TestMusicQueryController(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
@@ -30,5 +32,6 @@ class TestMusicQueryController(unittest.IsolatedAsyncioTestCase):
         self.mock_service.execute_sql_statement.assert_awaited_once_with(sql)
         self.assertEqual(result, mock_response)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

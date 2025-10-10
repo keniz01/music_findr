@@ -1,5 +1,5 @@
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import SearchQueryForm from "../src/components/search-query-form";
+import SearchQueryForm from "../src/components/search/search-query-form";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import React from "react";
 
@@ -67,8 +67,8 @@ describe("QuerySearchForm", () => {
     });
 
     render(<SearchQueryForm />);
-    expect(await screen.findByText(/Error fetching data/i)).toBeInTheDocument();
-    expect(await screen.findByText(/API Error/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Oops! Something went wrong/i)).toBeInTheDocument();
+    expect(await screen.findByText(/Something went wrong\. Please try again\./i)).toBeInTheDocument();
   });
 
   it("triggers refetch on form submission with valid input", async () => {

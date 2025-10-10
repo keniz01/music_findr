@@ -1,7 +1,9 @@
-from typing import List, Dict, Any
-from ...domain.interfaces.music_query_service import IMusicQueryService
-from ...application.interfaces.music_query_controller import IMusicQueryController
 import logging
+from typing import Any, Dict, List
+
+from ...application.interfaces.music_query_controller import IMusicQueryController
+from ...domain.interfaces.music_query_service import IMusicQueryService
+
 
 class MusicQueryController(IMusicQueryController):
 

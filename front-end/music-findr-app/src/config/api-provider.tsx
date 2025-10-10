@@ -1,20 +1,6 @@
-import type { AxiosInstance } from "axios";
-import { createContext, useContext, useMemo, type ReactNode } from "react";
+import { useMemo, type ReactNode } from "react";
 import ApiClient from "./api-client";
-
-interface ApiContextProps {
-  apiClient: AxiosInstance;
-}
-
-const ApiContext = createContext<ApiContextProps | undefined>(undefined);
-
-export const useApi = () => {
-  const context = useContext(ApiContext);
-  if (!context) {
-    throw new Error("useApi must be used within an ApiProvider");
-  }
-  return context;
-};
+import { ApiContext } from "./api-context";
 
 interface ApiProviderProps {
   children: ReactNode;

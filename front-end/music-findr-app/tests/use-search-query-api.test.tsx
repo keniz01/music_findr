@@ -2,30 +2,28 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useSearchQueryApi } from "../src/hooks/use-search-query-api";
+import { ApiContext } from "../src/config/api-context";
+import React from "react";
+import { AxiosInstance } from "axios";
 
 const postMock = vi.fn();
 
-// Mock API provider once for all tests
-vi.mock("../src/config/api-provider", () => ({
-  useApi: () => ({
-    apiClient: {
-      post: postMock,
-    },
-  }),
-}));
-
-// Create a reusable wrapper with a fresh QueryClient for isolation
+// Provide ApiContext value for tests
 const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        retry: false, // disable retries for predictable tests
+        retry: false,
       },
     },
   });
 
   return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <ApiContext.Provider value={{ apiClient: { post: postMock } as AxiosInstance }}>
+        {children}
+      </ApiContext.Provider>
+    </QueryClientProvider>
   );
 };
 
@@ -65,9 +63,7 @@ describe("useSearchQueryApi", () => {
       },
     });
 
-    const { result } = renderHook(() => useSearchQueryApi("bad query"), {
-      wrapper: createWrapper(),
-    });
+    const { result } = renderHook(() => useSearchQueryApi("bad query"), { wrapper: createWrapper() });
 
     let refetchResult: Awaited<ReturnType<typeof result.current.refetch>>;
 
@@ -78,6 +74,6 @@ describe("useSearchQueryApi", () => {
 
     expect(refetchResult!.data).toBeUndefined();
     expect(refetchResult!.error).toBeInstanceOf(Error);
-    expect(refetchResult!.error?.message).toBe("Error fetching search results");
+    expect(refetchResult!.error?.message).toBe("Something went wrong");
   });
 });

@@ -1,6 +1,8 @@
+from datetime import datetime
 from typing import Any, Dict, List
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
 
 from src.models.api_response import ApiResponse
 from src.models.search_query_request import SearchQueryRequest
@@ -31,6 +33,17 @@ async def search_by_query(
 ) -> ApiResponse[List[Dict[str, Any]]]:
     """Process natural language search query using MCP server"""
     return await handler.search_by_query(request)
+
+
+@router.get("/healthz", summary="Health Check", tags=["Health"])
+async def health_check():
+    return JSONResponse(
+        content={
+            "status": "healthy",
+            "service": "MCP Client",
+            "timestamp": datetime.now().strftime("%d/%m/%Y %H:%M:%S"),
+        }
+    )
 
 
 # Export the router

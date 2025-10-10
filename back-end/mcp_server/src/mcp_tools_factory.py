@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+
 from data_accessor import IMusicQueryController
 from fastmcp import FastMCP
 from fastmcp.tools import Tool

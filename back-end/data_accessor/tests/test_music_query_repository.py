@@ -3,7 +3,11 @@ from unittest.mock import AsyncMock
 
 from src.domain.exceptions.forbidden_sql_statement_exception import ForbiddenSqlStatementException
 from src.domain.exceptions.sql_statement_execution_exception import SqlStatementExecutionException
-from src.infrastructure.repositories.music_query_repository import DefaultSqlSafetyChecker, MusicQueryRepository
+from src.infrastructure.repositories.music_query_repository import (
+    DefaultSqlSafetyChecker,
+    MusicQueryRepository,
+)
+
 
 class TestDefaultSqlSafetyChecker(unittest.TestCase):
     def setUp(self):
@@ -29,6 +33,7 @@ class TestDefaultSqlSafetyChecker(unittest.TestCase):
         query = "SELECT * FROM songs -- comment"
         self.assertFalse(self.checker.is_safe_select_query(query))
 
+
 class TestMusicQueryRepository(unittest.IsolatedAsyncioTestCase):
 
     async def asyncSetUp(self):
@@ -53,9 +58,7 @@ class TestMusicQueryRepository(unittest.IsolatedAsyncioTestCase):
         self.mock_conn.execute.return_value = self.mock_result
         self.mock_conn.close = AsyncMock()
 
-        self.repo = MusicQueryRepository(
-            engine=self.mock_engine
-        )
+        self.repo = MusicQueryRepository(engine=self.mock_engine)
 
     async def test_execute_sql_statement_valid(self):
         sql = "SELECT * FROM songs"
@@ -96,7 +99,7 @@ class TestMusicQueryRepository(unittest.IsolatedAsyncioTestCase):
         self.mock_engine.connect.side_effect = None
 
     async def test_get_table_schema(self):
-        mock_schema_json = '''{
+        mock_schema_json = """{
             "album": {
                 "columns": {
                     "title": {"column_description": "The album title"},
@@ -104,18 +107,14 @@ class TestMusicQueryRepository(unittest.IsolatedAsyncioTestCase):
                 },
                 "table_description": "Album table"
             }
-        }'''
+        }"""
 
         self.mock_result.fetchall = AsyncMock(return_value=[(mock_schema_json,)])
         self.mock_conn.execute.return_value = self.mock_result
 
         result = await self.repo.get_table_schema([0.1, 0.2, 0.3])
 
-        expected = (
-            "album:\n"
-            "  title: The album title\n"
-            "  artist_id: Artist reference\n"
-        )
+        expected = "album:\n" "  title: The album title\n" "  artist_id: Artist reference\n"
         self.assertEqual(result, expected)
 
     def test_format_single_schema(self):
@@ -124,17 +123,13 @@ class TestMusicQueryRepository(unittest.IsolatedAsyncioTestCase):
             "songs": {
                 "columns": {
                     "title": {"column_description": "The title of the song"},
-                    "artist_id": {"column_description": "Reference to artist"}
+                    "artist_id": {"column_description": "Reference to artist"},
                 }
             }
         }
 
         result = repo._format_single_schema(raw_json)
-        expected = [
-            "songs:",
-            "  title: The title of the song",
-            "  artist_id: Reference to artist"
-        ]
+        expected = ["songs:", "  title: The title of the song", "  artist_id: Reference to artist"]
 
         self.assertEqual(result, expected)
 

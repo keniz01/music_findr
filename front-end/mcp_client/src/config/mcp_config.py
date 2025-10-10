@@ -1,6 +1,7 @@
 """MCP Client configuration"""
 
 from dataclasses import dataclass
+
 from fastmcp import Client
 from fastmcp.client.transports import StreamableHttpTransport
 

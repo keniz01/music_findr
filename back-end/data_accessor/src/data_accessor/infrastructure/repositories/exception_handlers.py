@@ -1,8 +1,11 @@
 import logging
+
 from ...domain.exceptions.sql_statement_execution_exception import SqlStatementExecutionException
 
 
-def raise_sql_execution_exception(message: str, error: Exception, include_traceback: bool = False) -> None:
+def raise_sql_execution_exception(
+    message: str, error: Exception, include_traceback: bool = False
+) -> None:
     """
     Raises a SqlStatementExecutionException with formatted error message and optional traceback.
 

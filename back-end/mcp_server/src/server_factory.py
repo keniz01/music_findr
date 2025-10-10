@@ -1,14 +1,13 @@
+from data_accessor import IMusicQueryController
 from fastmcp import FastMCP
-
-from fastmcp.server.middleware.timing import TimingMiddleware
-from fastmcp.server.middleware.logging import LoggingMiddleware
 from fastmcp.server.middleware.error_handling import ErrorHandlingMiddleware
+from fastmcp.server.middleware.logging import LoggingMiddleware
 from fastmcp.server.middleware.rate_limiting import (
     RateLimitingMiddleware,
     SlidingWindowRateLimitingMiddleware,
 )
+from fastmcp.server.middleware.timing import TimingMiddleware
 
-from data_accessor import IMusicQueryController
 from src.boot_strap import setup_container
 from src.mcp_tools_factory import register_tools
 from src.routes import register_routes

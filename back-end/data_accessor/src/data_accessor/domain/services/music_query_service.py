@@ -1,20 +1,25 @@
-from typing import List, Dict, Any, Optional
+import logging
+from typing import Any, Dict, List, Optional
+
 from ..interfaces.music_query_repository import IMusicQueryRepository
 from ..interfaces.music_query_service import IMusicQueryService
-import logging
+
 
 class MusicQueryService(IMusicQueryService):
     """
     Service class for music queries.
     This class implements the methods to interact with the music query repository.
     """
+
     def __init__(self, repository: IMusicQueryRepository) -> None:
         """
         Initialize the MusicQueryService with a repository (dependency injection).
         """
         self.repository = repository
 
-    async def execute_sql_statement(self, sql: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    async def execute_sql_statement(
+        self, sql: str, params: Optional[Dict[str, Any]] = None
+    ) -> List[Dict[str, Any]]:
         try:
             result = await self.repository.execute_sql_statement(sql, params)
             logging.info("Service: SQL executed successfully.")

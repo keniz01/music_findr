@@ -24,11 +24,11 @@ class TestRoutes(unittest.TestCase):
         # Act
         with patch("src.routes.datetime") as mock_datetime:
             mock_datetime.now.return_value = current_time
-            response = self.client.get("/health")
+            response = self.client.get("/api/healthz")
 
         # Assert
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data["status"], "healthy")
-        self.assertEqual(data["service"], "mcp-server")
-        self.assertEqual(data["date/time"], current_time.strftime("%d/%m/%Y %H:%M:%S"))
+        self.assertEqual(data["service"], "MCP Server")
+        self.assertEqual(data["timestamp"], current_time.strftime("%d/%m/%Y %H:%M:%S"))

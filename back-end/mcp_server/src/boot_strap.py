@@ -1,14 +1,13 @@
-from punq import Container
-from sqlalchemy.ext.asyncio import create_async_engine
-
 from data_accessor import (
     IMusicQueryController,
-    MusicQueryController,
     IMusicQueryRepository,
     IMusicQueryService,
-    MusicQueryService,
+    MusicQueryController,
     MusicQueryRepository,
+    MusicQueryService,
 )
+from punq import Container
+from sqlalchemy.ext.asyncio import create_async_engine
 
 
 def setup_container() -> IMusicQueryController:

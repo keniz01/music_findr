@@ -1,6 +1,6 @@
 import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import QuerySearchForm from "./components/search-query-form";
+import QuerySearchForm from "./components/search/search-query-form";
 import { ApiProvider } from "./config/api-provider";
 import Layout from "./components/layout";
 

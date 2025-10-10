@@ -15,9 +15,10 @@ from ...domain.exceptions.forbidden_sql_statement_exception import ForbiddenSqlS
 from ...domain.exceptions.sql_statement_execution_exception import SqlStatementExecutionException
 from ...infrastructure.repositories.exception_handlers import raise_sql_execution_exception
 
+
 class SqlSafetyChecker(Protocol):
-    def is_safe_select_query(self, query: str) -> bool:
-        ...
+    def is_safe_select_query(self, query: str) -> bool: ...
+
 
 class DefaultSqlSafetyChecker:
     """
@@ -31,11 +32,14 @@ class DefaultSqlSafetyChecker:
 
         stmt = parsed[0]
         stmt_type = stmt.get_type()
-        if stmt_type != 'SELECT':
+        if stmt_type != "SELECT":
             return False
 
         # Disallow CTEs (WITH ...)
-        if any(token.ttype is sqlparse.tokens.CTE and token.value.upper() == "WITH" for token in stmt.tokens):
+        if any(
+            token.ttype is sqlparse.tokens.CTE and token.value.upper() == "WITH"
+            for token in stmt.tokens
+        ):
             return False
 
         # Disallow semicolons (multiple statements)
@@ -65,7 +69,7 @@ class MusicQueryRepository(IMusicQueryRepository):
         self,
         engine: AsyncEngine,
         sql_safety_checker: SqlSafetyChecker = DefaultSqlSafetyChecker(),
-        default_schema: str = "music"
+        default_schema: str = "music",
     ) -> None:
         self._engine = engine
         self._sql_safety_checker = sql_safety_checker
@@ -84,7 +88,9 @@ class MusicQueryRepository(IMusicQueryRepository):
             logging.error(f"Error connecting to database: {e}")
             raise_sql_execution_exception("Error connecting to database", e, include_traceback=True)
 
-    async def execute_sql_statement(self, sql: str, params: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    async def execute_sql_statement(
+        self, sql: str, params: Optional[Dict[str, Any]] = None
+    ) -> List[Dict[str, Any]]:
         if not self._sql_safety_checker.is_safe_select_query(sql):
             logging.warning(f"Forbidden SQL statement attempted: {sql}")
             raise ForbiddenSqlStatementException("Only simple SELECT statements are allowed.")
@@ -92,8 +98,7 @@ class MusicQueryRepository(IMusicQueryRepository):
         async with self.get_conn(self._default_schema) as conn:
             try:
                 result: Union[AsyncResult, CursorResult] = await conn.execute(
-                    text(sql),
-                    parameters=params if params else {}
+                    text(sql), parameters=params if params else {}
                 )
                 if result.returns_rows:
                     rows = await result.fetchall()
@@ -104,7 +109,9 @@ class MusicQueryRepository(IMusicQueryRepository):
                 return []
             except Exception as e:
                 logging.error(f"Error executing SQL statement: {e}")
-                raise_sql_execution_exception("Error connecting to database", e, include_traceback=True)
+                raise_sql_execution_exception(
+                    "Error connecting to database", e, include_traceback=True
+                )
 
     async def get_table_schema(self, query_embeddings: list[float]) -> str:
         """
@@ -129,21 +136,25 @@ class MusicQueryRepository(IMusicQueryRepository):
 
         except Exception as e:
             logging.error(f"Error fetching database schema: {e}", exc_info=True)
-            raise SqlStatementExecutionException(f"""
+            raise SqlStatementExecutionException(
+                f"""
                                                     Error fetching database schema: {type(e).__name__}
                                                     Exception: {e}
-                                                    """) from e
+                                                    """
+            ) from e
 
     def _build_similarity_query(self) -> text:
         """
         Builds the SQL query for fetching schema rows by cosine similarity.
         """
-        return text("""
+        return text(
+            """
             SELECT raw_json, (embeddings <#> CAST(:query_embeddings AS vector)) as cosine_similarity
             FROM schema_embeddings
             ORDER BY cosine_similarity ASC
             LIMIT 4
-        """)
+        """
+        )
 
     def _format_schema_rows(self, rows: list) -> str:
         """
@@ -157,7 +168,7 @@ class MusicQueryRepository(IMusicQueryRepository):
         """
         schema_lines = []
 
-        for raw_json, in rows:
+        for (raw_json,) in rows:
             data = json.loads(raw_json)
             schema_lines.extend(self._format_single_schema(data))
             schema_lines.append("")  # Add spacing between tables
@@ -179,10 +190,10 @@ class MusicQueryRepository(IMusicQueryRepository):
         for table_name, table_info in raw_json.items():
             lines.append(f"{table_name}:")
             if isinstance(table_info, dict):
-                columns = table_info.get('columns', {})
+                columns = table_info.get("columns", {})
                 for column_name, column_info in columns.items():
                     description = (
-                        column_info.get('column_description', '')
+                        column_info.get("column_description", "")
                         if isinstance(column_info, dict)
                         else str(column_info)
                     )

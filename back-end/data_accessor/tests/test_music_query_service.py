@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 from src.domain.interfaces.music_query_repository import IMusicQueryRepository
 from src.domain.services.music_query_service import MusicQueryService
 
+
 class TestMusicQueryService(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         self.mock_repository = MagicMock(spec=IMusicQueryRepository)
@@ -30,7 +31,7 @@ class TestMusicQueryService(unittest.IsolatedAsyncioTestCase):
         embeddings = [1223333]
         expected_schema = [
             {"table": "songs", "columns": ["id", "title", "artist"]},
-            {"table": "albums", "columns": ["id", "name"]}
+            {"table": "albums", "columns": ["id", "name"]},
         ]
         self.mock_repository.get_table_schema.return_value = expected_schema
 
@@ -54,5 +55,6 @@ class TestMusicQueryService(unittest.IsolatedAsyncioTestCase):
         self.mock_repository.execute_sql_statement.assert_awaited_once_with(sql_query, None)
         self.assertEqual(result, expected_result)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

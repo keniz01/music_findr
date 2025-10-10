@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import React from "react";
 import { InputRef } from "antd";
-import SearchQueryInput from "../src/components/search-query-input";
+import SearchQueryInput from "../src/components/search/search-query-input";
 
 describe("SearchQueryInput", () => {
   it("renders correctly with default props", () => {

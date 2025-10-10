@@ -1,13 +1,10 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, beforeEach } from "vitest";
-import { type RenderResult } from "@testing-library/react";
 import App from "../src/app";
 
 describe("App", () => {
-  let renderResult: RenderResult;
-
   beforeEach(() => {
-    renderResult = render(<App />);
+    render(<App />);
   });
 
   it("renders initial content", () => {

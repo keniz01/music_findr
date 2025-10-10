@@ -1,9 +1,8 @@
 import unittest
 from unittest.mock import patch
-from starlette.testclient import TestClient
+
 from fastmcp import Client
 
-from src.server_factory import create_app
 from tests.mocks.mock_controller import MockMusicQueryController
 
 
@@ -15,8 +14,8 @@ class TestMcpTools(unittest.IsolatedAsyncioTestCase):
             mock_container = mock_setup_container.return_value
             mock_container.resolve.return_value = self.controller
             from src.server_factory import (
-                create_mcp_app,
                 add_middlewares,
+                create_mcp_app,
                 register_tools,
             )
 
@@ -38,7 +37,7 @@ class TestMcpTools(unittest.IsolatedAsyncioTestCase):
         # Test using FastMCP client
         async with Client(self.mcp) as client:
             result = await client.call_tool(
-                "get_table_schema", {"embeddings": [0.1, -0.2]}
+                "get_table_schema", {"query_embeddings": [0.1, -0.2]}
             )
             self.assertEqual(result.data["table"], "users")
             self.assertEqual(result.data["columns"], ["id", "name"])
