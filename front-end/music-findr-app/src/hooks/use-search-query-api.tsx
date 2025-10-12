@@ -8,9 +8,12 @@ export const useSearchQueryApi = (searchQuery: string) => {
 
   const fetchSearchQueryResult = async (): Promise<string | undefined> => {
     try {
-      const { data } = await apiClient.post<ApiResponse<string>>("/api/search", {
-        query: searchQuery.trim(),
-      });
+      const { data } = await apiClient.post<ApiResponse<string>>(
+        "/api/search",
+        {
+          query: searchQuery.trim()
+        }
+      );
 
       if (data?.error) {
         throw new Error(data.error);
@@ -32,6 +35,6 @@ export const useSearchQueryApi = (searchQuery: string) => {
     queryKey: ["fetchSearchQueryResult", searchQuery],
     queryFn: fetchSearchQueryResult,
     enabled: false,
-    staleTime: 1000 * 60,
+    staleTime: 1000 * 60
   });
 };

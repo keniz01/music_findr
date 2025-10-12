@@ -19,15 +19,17 @@ if (!window.matchMedia) {
       removeListener: vi.fn(), // deprecated
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
-      dispatchEvent: vi.fn(),
-    }),
+      dispatchEvent: vi.fn()
+    })
   });
 }
 
 // Stub heavy icon components, keep accessible name for search button
 vi.mock("@ant-design/icons", () => ({
-  SearchOutlined: () => React.createElement("span", { role: "img", "aria-label": "search" }),
-  CloseCircleFilled: () => React.createElement("span", { role: "img", "aria-label": "close-circle" }),
+  SearchOutlined: () =>
+    React.createElement("span", { role: "img", "aria-label": "search" }),
+  CloseCircleFilled: () =>
+    React.createElement("span", { role: "img", "aria-label": "close-circle" })
 }));
 
 // Optionally stub heavy antd components not directly under test
@@ -38,17 +40,22 @@ vi.mock("antd", async (importOriginal) => {
     ...actual,
     // keep Input.Search behavior but avoid heavy internals
     Input: {
-      ...actual.Input,
+      ...actual.Input
     },
     // render minimal alert content so tests can assert text
-    Alert: ({ message, description }: { message?: string; description?: string }) => (
+    Alert: ({
+      message,
+      description
+    }: {
+      message?: string;
+      description?: string;
+    }) =>
       React.createElement(
         "div",
         { role: "alert" },
         React.createElement("div", null, message),
-        React.createElement("div", null, description),
+        React.createElement("div", null, description)
       )
-    ),
   };
 });
 

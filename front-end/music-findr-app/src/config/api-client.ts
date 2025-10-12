@@ -3,8 +3,8 @@ import axios, { type InternalAxiosRequestConfig } from "axios";
 const ApiClient = axios.create({
   baseURL: "",
   headers: {
-    "Content-Type": "application/json",
-  },
+    "Content-Type": "application/json"
+  }
 });
 
 // Request interceptor
@@ -18,7 +18,7 @@ ApiClient.interceptors.request.use(
   (error: Error) => {
     console.error("[API Request Error]", error);
     return Promise.reject(error);
-  },
+  }
 );
 
 // Response interceptor
@@ -30,7 +30,7 @@ ApiClient.interceptors.response.use(
   (error: Error) => {
     console.error("[API Response Error]", error);
     return Promise.reject(error);
-  },
+  }
 );
 
 export default ApiClient;

@@ -8,17 +8,19 @@ describe("SearchQueryInput", () => {
   it("renders correctly with default props", () => {
     render(<SearchQueryInput onSearch={() => {}} />);
 
-    const input = screen.getByPlaceholderText("Search...");
+    const input = screen.getByPlaceholderText("Find music ...");
     expect(input).toBeInTheDocument();
   });
 
   it("calls onChange when input value changes", () => {
     const handleChange = vi.fn();
     render(
-      <SearchQueryInput value="" onChange={handleChange} onSearch={() => {}} />,
+      <SearchQueryInput value="" onChange={handleChange} onSearch={() => {}} />
     );
 
-    const input = screen.getByPlaceholderText("Search...") as HTMLInputElement;
+    const input = screen.getByPlaceholderText(
+      "Find music ..."
+    ) as HTMLInputElement;
 
     fireEvent.change(input, { target: { value: "test" } });
     expect(handleChange).toHaveBeenCalledTimes(1);

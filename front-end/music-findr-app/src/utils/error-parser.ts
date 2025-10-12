@@ -3,7 +3,10 @@ const parseError = (error: unknown): string => {
 
   const msg = error.message;
 
-  if (msg.includes("UndefinedTableError") && msg.includes("schema_embeddings")) {
+  if (
+    msg.includes("UndefinedTableError") &&
+    msg.includes("schema_embeddings")
+  ) {
     return "We're having trouble accessing the data source. Please try again later.";
   }
 

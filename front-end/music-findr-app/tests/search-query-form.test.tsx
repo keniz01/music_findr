@@ -1,113 +1,55 @@
+import React from "react";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import SearchQueryForm from "../src/components/search/search-query-form";
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import React from "react";
+import { beforeEach, describe, expect, it, Mock, vi } from "vitest";
 
-// 🟢 Correctly mock the hook
 vi.mock("../src/hooks/use-search-query-api", () => ({
-  useSearchQueryApi: vi.fn(),
+  useSearchQueryApi: vi.fn()
 }));
-
-// 🔄 Re-import after mocking
 import { useSearchQueryApi } from "../src/hooks/use-search-query-api";
-const mockedUseSearchQueryApi = useSearchQueryApi as unknown as jest.Mock; // 👈 OR vi.Mock
+const mockedUseSearchQueryApi = useSearchQueryApi as unknown as Mock;
 
-describe("QuerySearchForm", () => {
+vi.mock("@ant-design/icons", async (importOriginal) => {
+  const actual: object = await importOriginal();
+  return {
+    ...actual,
+    CloseOutlined: () => <span>CloseIcon</span>
+  };
+});
+
+describe("SearchQueryForm", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("renders the form correctly", () => {
+  it("renders initial form state (no interaction)", () => {
     mockedUseSearchQueryApi.mockReturnValue({
       data: null,
       isLoading: false,
       isError: false,
       error: null,
-      refetch: vi.fn(),
+      refetch: vi.fn()
     });
-
     render(<SearchQueryForm />);
-    expect(screen.getByPlaceholderText("Search...")).toBeInTheDocument();
+    // The input and search button should be there
+    expect(screen.getByPlaceholderText("Find music ...")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /search/i })).toBeInTheDocument();
+    expect(screen.queryByText(/CloseIcon/i)).not.toBeInTheDocument();
   });
 
-  // it("displays loading spinner when loading", () => {
-  //   mockedUseSearchQueryApi.mockReturnValue({
-  //     data: null,
-  //     isLoading: true,
-  //     isError: false,
-  //     error: null,
-  //     refetch: vi.fn()
-  //   });
-
-  //   render(<SearchQueryForm />);
-  //   expect(screen.getByRole("spin")).toBeInTheDocument();
-  // });
-
-  it("displays results when data is returned", async () => {
-    mockedUseSearchQueryApi.mockReturnValue({
-      data: "Mocked result data",
-      isLoading: false,
-      isError: false,
-      error: null,
-      refetch: vi.fn(),
-    });
-
-    render(<SearchQueryForm />);
-    expect(await screen.findByText(/Mocked result data/i)).toBeInTheDocument();
-  });
-
-  it("displays error when error occurs", async () => {
-    mockedUseSearchQueryApi.mockReturnValue({
-      data: null,
-      isLoading: false,
-      isError: true,
-      error: new Error("API Error"),
-      refetch: vi.fn(),
-    });
-
-    render(<SearchQueryForm />);
-    expect(await screen.findByText(/Oops! Something went wrong/i)).toBeInTheDocument();
-    expect(await screen.findByText(/Something went wrong\. Please try again\./i)).toBeInTheDocument();
-  });
-
-  it("triggers refetch on form submission with valid input", async () => {
+  it("does not trigger refetch when submitting blank or whitespace input", async () => {
     const refetch = vi.fn();
-
     mockedUseSearchQueryApi.mockReturnValue({
       data: null,
       isLoading: false,
       isError: false,
       error: null,
-      refetch,
+      refetch
     });
-
     render(<SearchQueryForm />);
-    const input = screen.getByPlaceholderText("Search...");
+
+    const input = screen.getByPlaceholderText("Find music ...");
     const button = screen.getByRole("button", { name: /search/i });
-
-    fireEvent.change(input, { target: { value: "example query" } });
-    fireEvent.click(button);
-
-    await waitFor(() => {
-      expect(refetch).toHaveBeenCalled();
-    });
-  });
-
-  it("does not call refetch on empty or whitespace input", async () => {
-    const refetch = vi.fn();
-
-    mockedUseSearchQueryApi.mockReturnValue({
-      data: null,
-      isLoading: false,
-      isError: false,
-      error: null,
-      refetch,
-    });
-
-    render(<SearchQueryForm />);
-    const input = screen.getByPlaceholderText("Search...");
-    const button = screen.getByRole("button");
 
     fireEvent.change(input, { target: { value: "   " } });
     fireEvent.click(button);
@@ -115,5 +57,120 @@ describe("QuerySearchForm", () => {
     await waitFor(() => {
       expect(refetch).not.toHaveBeenCalled();
     });
+  });
+
+  it("triggers refetch when submitting a valid query", async () => {
+    const refetch = vi.fn();
+    mockedUseSearchQueryApi.mockReturnValue({
+      data: null,
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch
+    });
+    render(<SearchQueryForm />);
+
+    const input = screen.getByPlaceholderText("Find music ...");
+    const button = screen.getByRole("button", { name: /search/i });
+
+    fireEvent.change(input, { target: { value: "hello world" } });
+    fireEvent.click(button);
+
+    await waitFor(() => {
+      expect(refetch).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it("displays loading state when isLoading is true", async () => {
+    mockedUseSearchQueryApi.mockReturnValue({
+      data: null,
+      isLoading: true,
+      isError: false,
+      error: null,
+      refetch: vi.fn()
+    });
+    render(<SearchQueryForm />);
+
+    expect(
+      await screen.queryByTestId("search-query-results")
+    ).toBeInTheDocument();
+  });
+
+  it("displays error when isError is true", async () => {
+    const err = new Error("Something went wrong");
+    mockedUseSearchQueryApi.mockReturnValue({
+      data: null,
+      isLoading: false,
+      isError: true,
+      error: err,
+      refetch: vi.fn()
+    });
+    render(<SearchQueryForm />);
+
+    // We expect SearchError to show an error message
+    // Adjust according to your SearchError implementation
+    expect(await screen.findByText(/Search Error/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/Something went wrong/i)
+    ).toBeInTheDocument();
+  });
+
+  it("shows returned data in chat history after successful fetch", async () => {
+    const refetch = vi.fn();
+    // First call: no data
+    // Then after query set, data arrives
+    mockedUseSearchQueryApi.mockReturnValue({
+      data: "Mocked result data",
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch
+    });
+
+    render(<SearchQueryForm />);
+
+    const input = screen.getByPlaceholderText("Find music ...");
+    const button = screen.getByRole("button", { name: /search/i });
+
+    fireEvent.change(input, { target: { value: "test query" } });
+    fireEvent.click(button);
+
+    // Wait for chat history to contain the response
+    await waitFor(() => {
+      // More robust: search for an element whose textContent includes the response
+      const found = screen.getAllByText((content, element) => {
+        return element?.textContent?.includes("Mocked result data");
+      });
+      expect(found.length).toBeGreaterThan(0);
+    });
+  });
+
+  it("clears the input and resets searchQuery when onClear is called", async () => {
+    const refetch = vi.fn();
+    mockedUseSearchQueryApi.mockReturnValue({
+      data: null,
+      isLoading: false,
+      isError: false,
+      error: null,
+      refetch
+    });
+
+    render(<SearchQueryForm />);
+
+    const input = screen.getByPlaceholderText("Find music ...");
+
+    // Type into the input
+    fireEvent.change(input, { target: { value: "some text" } });
+    expect((input as HTMLInputElement).value).toBe("some text");
+
+    // Click the clear button
+    const clearButton = screen.getByTestId("clear-button");
+    fireEvent.click(clearButton);
+
+    // Input should be cleared
+    expect((input as HTMLInputElement).value).toBe("");
+
+    // Optionally verify that refetch is not called
+    expect(refetch).not.toHaveBeenCalled();
   });
 });

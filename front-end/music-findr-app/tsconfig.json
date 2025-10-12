@@ -6,6 +6,7 @@
   ],
   "compilerOptions": {
     "types": ["vitest", "@testing-library/jest-dom"],
-    "lib": ["dom", "esnext"]
+    "lib": ["dom", "esnext"],
+    "strict": true
   }
 }

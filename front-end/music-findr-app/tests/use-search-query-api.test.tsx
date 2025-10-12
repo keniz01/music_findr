@@ -13,14 +13,16 @@ const createWrapper = () => {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
-        retry: false,
-      },
-    },
+        retry: false
+      }
+    }
   });
 
   return ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>
-      <ApiContext.Provider value={{ apiClient: { post: postMock } as AxiosInstance }}>
+      <ApiContext.Provider
+        value={{ apiClient: { post: postMock } as AxiosInstance }}
+      >
         {children}
       </ApiContext.Provider>
     </QueryClientProvider>
@@ -38,18 +40,18 @@ describe("useSearchQueryApi", () => {
     postMock.mockResolvedValueOnce({
       data: {
         result: mockResult,
-        error: null,
-      },
+        error: null
+      }
     });
 
     const { result } = renderHook(() => useSearchQueryApi("test query"), {
-      wrapper: createWrapper(),
+      wrapper: createWrapper()
     });
 
     const { data, error } = await result.current.refetch();
 
     expect(postMock).toHaveBeenCalledWith("/api/search", {
-      query: "test query",
+      query: "test query"
     });
     expect(data).toBe(mockResult);
     expect(error).toBeNull();
@@ -59,11 +61,13 @@ describe("useSearchQueryApi", () => {
     postMock.mockResolvedValueOnce({
       data: {
         result: null,
-        error: "Something went wrong",
-      },
+        error: "Something went wrong"
+      }
     });
 
-    const { result } = renderHook(() => useSearchQueryApi("bad query"), { wrapper: createWrapper() });
+    const { result } = renderHook(() => useSearchQueryApi("bad query"), {
+      wrapper: createWrapper()
+    });
 
     let refetchResult: Awaited<ReturnType<typeof result.current.refetch>>;
 

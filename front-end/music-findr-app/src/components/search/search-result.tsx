@@ -9,8 +9,12 @@ interface SearchResultsProps {
 const SearchResults: React.FC<SearchResultsProps> = ({ isLoading, data }) => {
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen animate-fade-in">
-        <div className="scale-[2] transition-transform duration-300 ease-in-out">
+      <div
+        id="search-query-results"
+        data-testid="search-query-results"
+        className="flex justify-center items-center min-h-screen animate-fade-in"
+      >
+        <div className="scale-[1.5] transition-transform duration-300 ease-in-out">
           <Spin />
         </div>
       </div>
