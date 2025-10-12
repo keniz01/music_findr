@@ -1,18 +1,17 @@
 import json
-import sqlparse
 import logging
-
 from contextlib import asynccontextmanager
-from typing import Any, AsyncGenerator, List, Tuple, Union, Protocol
-from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
-from sqlalchemy.engine import CursorResult
-from sqlalchemy.ext.asyncio.result import AsyncResult
-from sqlalchemy import text
+from typing import Any, AsyncGenerator, Dict, List, Optional, Protocol, Tuple, Union
 
-from typing import Dict, Optional
-from ...domain.interfaces.music_query_repository import IMusicQueryRepository
+import sqlparse
+from sqlalchemy import text
+from sqlalchemy.engine import CursorResult
+from sqlalchemy.ext.asyncio import AsyncConnection, AsyncEngine
+from sqlalchemy.ext.asyncio.result import AsyncResult
+
 from ...domain.exceptions.forbidden_sql_statement_exception import ForbiddenSqlStatementException
 from ...domain.exceptions.sql_statement_execution_exception import SqlStatementExecutionException
+from ...domain.interfaces.music_query_repository import IMusicQueryRepository
 from ...infrastructure.repositories.exception_handlers import raise_sql_execution_exception
 
 
