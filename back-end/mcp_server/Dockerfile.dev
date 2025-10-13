@@ -1,0 +1,39 @@
+# syntax=docker/dockerfile:1
+
+FROM python:3.12-slim AS dev
+
+# Install system packages
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set work directory
+WORKDIR /app
+
+# Copy necessary files
+COPY pyproject.toml .
+COPY README.md .
+COPY src ./src
+COPY tests ./tests
+COPY .pre-commit-config.yaml .  # If using pre-commit hooks
+
+# Optional: also copy local dependency during build (dev only)
+COPY ../data_accessor ./data_accessor
+
+# Install Hatch and uv (required by post-install commands)
+RUN pip install --upgrade pip hatch uv
+
+# Set environment variable for local import paths
+ENV PYTHONPATH=/app/src:/app/data_accessor
+
+# Install project in editable mode + dev dependencies
+RUN hatch env create dev
+RUN hatch run dev:post-install
+
+# Expose the development port
+EXPOSE 8000
+
+# Start the development server with auto-reload
+CMD ["hatch", "run", "dev:serve"]

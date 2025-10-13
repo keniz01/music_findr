@@ -1,0 +1,46 @@
+services:
+  mcp-server:
+    build: .
+    container_name: mcp-server
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ../data_accessor:/app/data_accessor
+    # depends_on:
+    #   - db
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@localhost:5432/postgres
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  # db:
+  #   image: postgres:16
+  #   container_name: mcp-db
+  #   restart: always
+  #   environment:
+  #     POSTGRES_USER: user
+  #     POSTGRES_PASSWORD: password
+  #     POSTGRES_DB: mcpdb
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+
+  mcp-server-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: mcp-server-dev
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - ../data_accessor:/app/data_accessor
+    environment:
+      - PYTHONPATH=/app/src:/app/data_accessor
+      - DATABASE_URL=postgresql+asyncpg://postgres:password@localhost:5432/postgres
+    # depends_on:
+    #   - db
+    command: hatch run dev:serve
+volumes:
+  pgdata:
