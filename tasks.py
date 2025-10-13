@@ -24,13 +24,13 @@ except ImportError:
         BLUE = ''
         YELLOW = ''
         WHITE = ''
-    
+
     class Style:
         RESET_ALL = ''
-    
+
     class Back:
         BLUE = ''
-    
+
     HAS_COLORAMA = False
 
 # Project paths
@@ -69,11 +69,11 @@ def run_with_error_handling(c, command, cwd=None, description="Command"):
                 result = c.run(command, warn=True)
         else:
             result = c.run(command, warn=True)
-        
+
         if result.exited != 0:
             print_error(f"{description} failed with exit code {result.exited}")
             raise Exit(f"{description} failed")
-        
+
         print_success(f"{description} completed successfully")
         return result
     except Failure as e:
@@ -95,7 +95,7 @@ def install(c, component='all'):
         'frontend-client': (FRONTEND_MCP_CLIENT, 'Frontend MCP Client'),
         'frontend-app': (FRONTEND_APP, 'Frontend App'),
     }
-    
+
     if component == 'all':
         targets = components.items()
     elif component in components:
@@ -104,10 +104,10 @@ def install(c, component='all'):
         print_error(f"Unknown component: {component}")
         print_info("Available components: backend-data, backend-server, frontend-client, frontend-app, all")
         raise Exit(1)
-    
+
     for comp_name, (path, display_name) in targets:
         print_header(f"Installing {display_name}")
-        
+
         if comp_name == 'frontend-app':
             # Frontend app uses npm
             if not (path / "package.json").exists():
@@ -119,7 +119,7 @@ def install(c, component='all'):
             if not (path / "pyproject.toml").exists():
                 print_error(f"pyproject.toml not found in {path}")
                 continue
-            
+
             # Special handling for MCP server - it depends on data_accessor
             if comp_name == 'backend-server':
                 print_info("MCP Server depends on data_accessor - installing data_accessor first")
@@ -132,7 +132,7 @@ def install(c, component='all'):
                 else:
                     print_error("data_accessor pyproject.toml not found")
                     continue
-            
+
             run_with_error_handling(c, "uv sync", cwd=path, description=f"uv sync for {display_name}")
 
 # =============================================================================
@@ -149,26 +149,13 @@ def test_backend_data(c):
 def test_backend_server(c):
     """Run tests for back-end/mcp_server with coverage"""
     print_header("Testing Backend MCP Server")
-    
-    print_warning("MCP Server tests require manual setup due to dependency environment issues")
-    print_info("To run MCP Server tests manually:")
-    print_info("1. cd back-end/mcp_server")
-    print_info("2. uv pip install -e ../data_accessor")
-    print_info("3. uv run --with data_accessor@../data_accessor python -m unittest discover -s tests -v")
-    print_info("")
-    print_info("Skipping automated test execution...")
-    
-    # For now, just verify the server can start
-    print_info("Testing if MCP Server can start...")
-    try:
-        # Try to start the server briefly to check if imports work
-        result = c.run("uv run --with data_accessor@../data_accessor python -c 'from src.server_factory import create_app; print(\"Import successful\")'", cwd=BACKEND_MCP_SERVER, warn=True)
-        if result.exited == 0 and "Import successful" in result.stdout:
-            print_success("MCP Server imports are working correctly")
-        else:
-            print_warning("MCP Server has import issues - see manual setup instructions above")
-    except Exception as e:
-        print_warning(f"MCP Server test skipped: {str(e)}")
+
+    # Check if tests exist
+    test_dir = BACKEND_MCP_SERVER / "tests"
+    if test_dir.exists() and any(test_dir.iterdir()):
+        run_with_error_handling(c, "hatch run dev:test", cwd=BACKEND_MCP_SERVER, description="MCP Server Tests")
+    else:
+        print_warning("No tests found for MCP Server")
 
 @task
 def test_frontend_client(c):
@@ -208,11 +195,11 @@ def dev_backend_data(c):
 def dev_backend_server(c):
     """Start development server for back-end/mcp_server"""
     print_header("Starting Backend MCP Server")
-    
+
     # Ensure data_accessor is installed
     print_info("Ensuring data_accessor package is available")
     run_with_error_handling(c, "uv pip install -e ../data_accessor", cwd=BACKEND_MCP_SERVER, description="Install data_accessor dependency")
-    
+
     print_info("Starting MCP Server on http://localhost:8000")
     run_with_error_handling(c, "hatch run dev:serve", cwd=BACKEND_MCP_SERVER, description="MCP Server")
 
@@ -240,29 +227,29 @@ def dev_fullstack(c):
     print_header("Starting Full Stack Development Environment")
     print_info("This will start all three components:")
     print_info("  • Frontend App (React) - http://localhost:5173")
-    print_info("  • MCP Client - http://localhost:8080") 
+    print_info("  • MCP Client - http://localhost:8080")
     print_info("  • MCP Server - http://localhost:8000")
     print_info("")
     print_warning("Note: This will start servers in background. Use 'inv stop-servers' to stop them.")
-    
+
     # Start MCP Server first (dependency for client)
     print_info("Starting MCP Server...")
     with c.cd(BACKEND_MCP_SERVER):
         c.run("hatch run dev:serve &")
     print_success("MCP Server started on http://localhost:8000")
-    
+
     # Start MCP Client
     print_info("Starting MCP Client...")
     with c.cd(FRONTEND_MCP_CLIENT):
         c.run("hatch run dev:serve &")
     print_success("MCP Client started on http://localhost:8080")
-    
+
     # Start Frontend App
     print_info("Starting Frontend App...")
     with c.cd(FRONTEND_APP):
         c.run("npm run dev &")
     print_success("Frontend App started on http://localhost:5173")
-    
+
     print_success("All development servers started!")
     print_info("Access your applications:")
     print_info("  • Frontend: http://localhost:5173")
@@ -273,17 +260,17 @@ def dev_fullstack(c):
 def stop_servers(c):
     """Stop all running development servers"""
     print_header("Stopping Development Servers")
-    
+
     print_info("Stopping Frontend App (React)...")
     c.run("pkill -f 'npm run dev' || true", warn=True)
-    
+
     print_info("Stopping MCP Client...")
     c.run("pkill -f 'hatch run dev:serve' || true", warn=True)
-    
+
     print_info("Stopping MCP Server...")
     c.run("pkill -f 'uv run.*main.py' || true", warn=True)
     c.run("pkill -f 'uvicorn.*mcp' || true", warn=True)
-    
+
     print_success("All development servers stopped!")
 
 @task
@@ -299,19 +286,19 @@ def dev_backend_only(c):
     """Start both MCP client and server"""
     print_header("Starting Backend Services Only")
     print_info("Starting MCP Client and MCP Server")
-    
+
     # Start MCP Server first
     print_info("Starting MCP Server...")
     with c.cd(BACKEND_MCP_SERVER):
         c.run("uv run --with data_accessor@../data_accessor main.py &")
     print_success("MCP Server started on http://localhost:8000")
-    
+
     # Start MCP Client
     print_info("Starting MCP Client...")
     with c.cd(FRONTEND_MCP_CLIENT):
         c.run("hatch run dev:serve &")
     print_success("MCP Client started on http://localhost:8080")
-    
+
     print_success("Backend services started!")
     print_info("Access your services:")
     print_info("  • MCP Client: http://localhost:8080")
@@ -496,7 +483,7 @@ def clean_backend_data(c):
         BACKEND_DATA_ACCESSOR / "__pycache__",
         BACKEND_DATA_ACCESSOR / "src" / "__pycache__",
     ]
-    
+
     for path in clean_paths:
         if path.exists():
             if path.is_dir():
@@ -516,7 +503,7 @@ def clean_backend_server(c):
         BACKEND_MCP_SERVER / "__pycache__",
         BACKEND_MCP_SERVER / "src" / "__pycache__",
     ]
-    
+
     for path in clean_paths:
         if path.exists():
             if path.is_dir():
@@ -535,7 +522,7 @@ def clean_frontend_client(c):
         FRONTEND_MCP_CLIENT / "__pycache__",
         FRONTEND_MCP_CLIENT / "src" / "__pycache__",
     ]
-    
+
     for path in clean_paths:
         if path.exists():
             if path.is_dir():
@@ -553,7 +540,7 @@ def clean_frontend_app(c):
         FRONTEND_APP / "dist",
         FRONTEND_APP / "node_modules",
     ]
-    
+
     for path in clean_paths:
         if path.exists():
             if path.is_dir():
@@ -592,10 +579,10 @@ def pre_commit(c):
 def dev_setup(c, component):
     """Complete development setup for a component"""
     print_header(f"Setting up development environment for {component}")
-    
+
     # Install dependencies
     install(c, component)
-    
+
     # Run pre-commit checks
     if component in ['backend-data', 'backend-server', 'frontend-client']:
         if component == 'backend-data':
@@ -614,25 +601,25 @@ def dev_setup(c, component):
         format_frontend_app(c)
         lint_frontend_app(c)
         typecheck_frontend_app(c)
-    
+
     print_success(f"Development setup completed for {component}")
 
 @task
 def status(c):
     """Show project status and available commands"""
     print_header("Music Findr Project Status")
-    
+
     # Check colorama status
     if not HAS_COLORAMA:
         print_warning("colorama not installed - output will be plain text")
         print_info("Install with: pip install colorama")
-    
+
     print_info("Available Components:")
     print(f"  • Backend Data Accessor: {BACKEND_DATA_ACCESSOR}")
     print(f"  • Backend MCP Server: {BACKEND_MCP_SERVER}")
     print(f"  • Frontend MCP Client: {FRONTEND_MCP_CLIENT}")
     print(f"  • Frontend App: {FRONTEND_APP}")
-    
+
     print_info("\nQuick Commands:")
     print("  • inv test          - Run all tests")
     print("  • inv lint          - Run all linting")
@@ -642,7 +629,7 @@ def status(c):
     print("  • inv dev-setup     - Setup development environment")
     print("  • inv clean         - Clean all build artifacts")
     print("  • inv install       - Install all dependencies")
-    
+
     print_info("\nDevelopment Server Commands:")
     print("  • inv dev-fullstack         - Start all servers (frontend + backend)")
     print("  • inv dev-frontend-only     - Start only React app")
@@ -650,11 +637,11 @@ def status(c):
     print("  • inv dev-backend-server    - Start MCP server only")
     print("  • inv dev-frontend-app      - Start React app only")
     print("  • inv stop-servers          - Stop all running servers")
-    
+
     print_info("\nComponent-specific Commands:")
     print("  • inv test-backend-data     - Test data accessor")
     print("  • inv test-backend-server   - Test MCP server")
     print("  • inv test-frontend-app     - Test React app")
     print("  • inv install --component   - Install specific component")
-    
+
     print_info("\nFor more details, run: inv --list")
