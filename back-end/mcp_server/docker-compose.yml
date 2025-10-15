@@ -1,46 +1,22 @@
 services:
   mcp-server:
-    build: .
-    container_name: mcp-server
-    ports:
-      - "8000:8000"
-    volumes:
-      - .:/app
-      - ../data_accessor:/app/data_accessor
-    # depends_on:
-    #   - db
-    environment:
-      - DATABASE_URL=postgresql+asyncpg://postgres:password@localhost:5432/postgres
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-
-  # db:
-  #   image: postgres:16
-  #   container_name: mcp-db
-  #   restart: always
-  #   environment:
-  #     POSTGRES_USER: user
-  #     POSTGRES_PASSWORD: password
-  #     POSTGRES_DB: mcpdb
-  #   ports:
-  #     - "5432:5432"
-  #   volumes:
-  #     - pgdata:/var/lib/postgresql/data
-
-  mcp-server-dev:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile
     container_name: mcp-server-dev
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
-      - ../data_accessor:/app/data_accessor
+      - .:/home/appuser/app  # Matches WORKDIR
+      - ../data_accessor:/home/appuser/app/data_accessor
     environment:
-      - PYTHONPATH=/app/src:/app/data_accessor
-      - DATABASE_URL=postgresql+asyncpg://postgres:password@localhost:5432/postgres
-    # depends_on:
-    #   - db
+      - PYTHONPATH=src:data_accessor
+      - SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+      - REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+      - PIP_CERT=/etc/ssl/certs/ca-certificates.crt
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8000/api/healthz"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
     command: hatch run dev:serve
-volumes:
-  pgdata:

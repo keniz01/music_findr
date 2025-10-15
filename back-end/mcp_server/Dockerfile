@@ -1,34 +1,39 @@
-# syntax=docker/dockerfile:1
+FROM python:3.12-slim
 
-FROM python:3.12-slim AS base
+# Create non-root user early
+RUN useradd -m appuser
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
+# Install CA certs and dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    curl \
+    gnupg \
     build-essential \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+    openssl \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Set work directory
-WORKDIR /app
+# 🔐 Add Zscaler cert (from build context)
+COPY zscaler-root.crt /usr/local/share/ca-certificates/zscaler-root.crt
+RUN update-ca-certificates
+
+# Force Python/pip/requests to use system certs
+ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+ENV PIP_CERT=/etc/ssl/certs/ca-certificates.crt
+
+# Install certifi to satisfy some Python packages, even if not used directly
+RUN pip install --upgrade pip setuptools && pip install certifi
+
+# Install Hatch and Hatchling
+RUN pip install --no-cache-dir hatch hatchling uv
+
+# Switch to non-root user and setup app dir
+USER appuser
+WORKDIR /home/appuser/app
 
 # Copy project files
-COPY pyproject.toml .
-COPY README.md .
-COPY src ./src
+COPY --chown=appuser:appuser pyproject.toml ./pyproject.toml
+COPY --chown=appuser:appuser src/ ./src
 
-# If data_accessor is in a sibling directory during build,
-# you'll need to copy it in. Modify as needed.
-COPY ../data_accessor ./data_accessor
-
-# Install Hatch and pip tools
-RUN pip install --upgrade pip hatch
-
-# Install project + local dependency (data_accessor)
-RUN pip install -e ./data_accessor
-RUN pip install .
-
-# Expose port (adjust as needed)
-EXPOSE 8000
-
-# Command to run the app using Uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Default command: run dev server
+CMD ["hatch", "run", "dev:serve"]

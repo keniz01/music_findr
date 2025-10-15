@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+.git
+.gitignore
+*.egg-info/
+.hatch/
+.vscode/
+*.swp
+.Python
+env/
+.venv/
+data_accessor/
+tests/
