@@ -3,17 +3,15 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: mcp-server-dev
+    container_name: mcp-server:dev
     ports:
       - "8000:8000"
     volumes:
-      - .:/home/appuser/app  # Matches WORKDIR
-      - ../data_accessor:/home/appuser/app/data_accessor
+      - .:/app:delegated
+      - /app/.venv  # anonymous volume so container's venv persists
     environment:
-      - PYTHONPATH=src:data_accessor
-      - SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
-      - REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-      - PIP_CERT=/etc/ssl/certs/ca-certificates.crt
+      - UV_COMPILE_BYTECODE=1
+      - UV_LINK_MODE=copy
     healthcheck:
       test: ["CMD", "curl", "--fail", "http://localhost:8000/api/healthz"]
       interval: 30s

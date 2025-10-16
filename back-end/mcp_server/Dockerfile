@@ -1,39 +1,48 @@
+# Use a Python image with uv pre-installed
 FROM python:3.12-slim
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Create non-root user early
-RUN useradd -m appuser
+RUN uv --version
 
-# Install CA certs and dependencies
+# Install the project into `/app`
+WORKDIR /app
+
+# 🔐 Install CA certificates
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
-    curl \
-    gnupg \
-    build-essential \
-    openssl \
-    && apt-get clean && rm -rf /var/lib/apt/lists/*
+    curl && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 🔐 Add Zscaler cert (from build context)
+# Add custom certificate to trusted store
 COPY zscaler-root.crt /usr/local/share/ca-certificates/zscaler-root.crt
 RUN update-ca-certificates
 
-# Force Python/pip/requests to use system certs
-ENV SSL_CERT_FILE=/etc/ssl/certs/ca-certificates.crt
-ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
-ENV PIP_CERT=/etc/ssl/certs/ca-certificates.crt
+COPY pyproject.toml uv.lock ./
 
-# Install certifi to satisfy some Python packages, even if not used directly
-RUN pip install --upgrade pip setuptools && pip install certifi
+# Enable bytecode compilation
+ENV UV_COMPILE_BYTECODE=1
 
-# Install Hatch and Hatchling
-RUN pip install --no-cache-dir hatch hatchling uv
+# Copy from the cache instead of linking since it's a mounted volume
+ENV UV_LINK_MODE=copy
+# Install the project's dependencies using the lockfile and settings
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project --no-dev
 
-# Switch to non-root user and setup app dir
-USER appuser
-WORKDIR /home/appuser/app
+# Then, add the rest of the project source code and install it
+# Installing separately from its dependencies allows optimal layer caching
+COPY . /app
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked --no-dev
 
-# Copy project files
-COPY --chown=appuser:appuser pyproject.toml ./pyproject.toml
-COPY --chown=appuser:appuser src/ ./src
+# Place executables in the environment at the front of the path
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Reset the entrypoint, don't invoke `uv`
+ENTRYPOINT []
+
+EXPOSE 8000
 
 # Default command: run dev server
 CMD ["hatch", "run", "dev:serve"]
