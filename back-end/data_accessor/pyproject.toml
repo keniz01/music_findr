@@ -49,16 +49,7 @@ test = """
 python -m coverage run -m unittest discover -s tests -v && \
 python -m coverage report
 """
-lint = "black src tests && isort src tests"
-typecheck = "mypy src tests"
 format = "black src tests && isort src tests"
-all = "hatch run dev:format && hatch run dev:typecheck && hatch run dev:test"
-# Show terminal report only
-coverage-report = "python -m coverage report"
-# Generate HTML report
-coverage-html = "python -m coverage html"
-# Clean up coverage files
-coverage-clean = "python -m coverage erase"
 
 [tool.coverage.run]
 source = ["src"]
