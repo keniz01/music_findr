@@ -35,11 +35,17 @@ class LoggingMiddleware(BaseHTTPMiddleware):
 
             return response
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info("🚀 Starting FastAPI application...")
+    yield
+    logger.info("🛑 Shutting down FastAPI application...")
 
 app = FastAPI(
     title="Postgres SQL MCP Client",
     description="FastApi Postgres SQL MCP Client.",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 # CORS settings
@@ -84,14 +90,6 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "path": request.url.path
         }
     )
-
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    logger.info("🚀 Starting FastAPI application...")
-    yield
-    logger.info("🛑 Shutting down FastAPI application...")
-
-app = FastAPI(lifespan=lifespan)
 
 # Include the router with prefix
 app.include_router(search_router)

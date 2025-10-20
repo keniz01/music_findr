@@ -13,25 +13,27 @@ class SearchHandler:
 
     async def search_by_query(
         self, request: SearchQueryRequest
-    ) -> ApiResponse[List[Dict[str, Any]]]:
+    ) -> ApiResponse[Dict[str, Any]]:
         """Search for music information using natural language query"""
         if not request.query.strip():
             return ApiResponse(success=False, error="Query cannot be empty")
 
         try:
             # Get table schema based on query
-            schema = await self._get_schema(request.query)
+            schema = await self._get_table_schema(request.query)
             if not schema:
                 return ApiResponse(success=False, error="No relevant tables found")
-
+            
+            return ApiResponse(success=True, result=schema)
+            
             # Execute SQL for the query
-            results = await self._execute_query(request.query)
-            return ApiResponse(success=True, result=results)
+            # results = await self._execute_sql_statement(request.query)
+            # return ApiResponse(success=True, result=results)
 
         except Exception as e:
             return ApiResponse(success=False, error=str(e))
 
-    async def _get_schema(self, query: str) -> List[Dict[str, Any]]:
+    async def _get_table_schema(self, query: str) -> Dict[str, Any]:
         """Get database schema information for query"""
         async with self._mcp_client as client:
             print("In  client")
@@ -427,7 +429,7 @@ class SearchHandler:
             )
             return result.data
 
-    async def _execute_query(self, query: str) -> List[Dict[str, Any]]:
+    async def _execute_sql_statement(self, query: str) -> List[Dict[str, Any]]:
         """Execute SQL query via MCP server"""
         async with self._mcp_client as client:
             result = await client.call_tool(

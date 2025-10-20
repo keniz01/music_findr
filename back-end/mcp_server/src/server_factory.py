@@ -41,8 +41,8 @@ def add_middlewares(mcp: FastMCP):
     )
 
 
-def create_app():
-    container = setup_container()
+def create_app(connection_string: str) -> FastMCP:
+    container = setup_container(connection_string)
     controller = container.resolve(IMusicQueryController)
     mcp = create_mcp_app()
     add_middlewares(mcp)

@@ -67,12 +67,10 @@ class MusicQueryRepository(IMusicQueryRepository):
     def __init__(
         self,
         engine: AsyncEngine,
-        sql_safety_checker: SqlSafetyChecker = DefaultSqlSafetyChecker(),
-        default_schema: str = "music",
+        sql_safety_checker: SqlSafetyChecker = DefaultSqlSafetyChecker()
     ) -> None:
         self._engine = engine
         self._sql_safety_checker = sql_safety_checker
-        self._default_schema = default_schema
 
     @asynccontextmanager
     async def get_conn(self, schema_name: str) -> AsyncGenerator[AsyncConnection, None]:
@@ -94,13 +92,13 @@ class MusicQueryRepository(IMusicQueryRepository):
             logging.warning(f"Forbidden SQL statement attempted: {sql}")
             raise ForbiddenSqlStatementException("Only simple SELECT statements are allowed.")
 
-        async with self.get_conn(self._default_schema) as conn:
+        async with self.get_conn("music") as conn:
             try:
                 result: Union[AsyncResult, CursorResult] = await conn.execute(
                     text(sql), parameters=params if params else {}
                 )
                 if result.returns_rows:
-                    rows = await result.fetchall()
+                    rows = result.fetchall()
                     # Convert SQL Alchemy row proxies to dicts
                     result_dicts = [dict(zip(row._fields, row)) for row in rows]
                     logging.info(f"SQL executed successfully, returned {len(rows)} rows.")
@@ -112,7 +110,7 @@ class MusicQueryRepository(IMusicQueryRepository):
                     "Error connecting to database", e, include_traceback=True
                 )
 
-    async def get_table_schema(self, query_embeddings: list[float]) -> str:
+    async def get_table_schema(self, query_embeddings: list[float]) -> Dict[str, Any]:
         """
         Fetches the top 4 most similar database schema entries from the 'schema_embeddings' table,
         based on cosine similarity with the given prompt embeddings.
@@ -129,9 +127,10 @@ class MusicQueryRepository(IMusicQueryRepository):
             async with self.get_conn("meta") as conn:
                 embedding_str = f"[{','.join(map(str, query_embeddings))}]"
                 result = await conn.execute(query, {"query_embeddings": embedding_str})
-                rows = await result.fetchall()
+                rows = result.fetchall()
 
-            return self._format_schema_rows(rows)
+                formatted = self._format_schema_rows(rows)
+                return {"schema": formatted}
 
         except Exception as e:
             logging.error(f"Error fetching database schema: {e}", exc_info=True)
@@ -143,16 +142,13 @@ class MusicQueryRepository(IMusicQueryRepository):
             ) from e
 
     def _build_similarity_query(self) -> text:
-        """
-        Builds the SQL query for fetching schema rows by cosine similarity.
-        """
         return text(
             """
-            SELECT raw_json, (embeddings <#> CAST(:query_embeddings AS vector)) as cosine_similarity
+            SELECT raw_json
             FROM schema_embeddings
-            ORDER BY cosine_similarity ASC
+            ORDER BY (embeddings <#> CAST(:query_embeddings AS vector)) ASC
             LIMIT 4
-        """
+            """
         )
 
     def _format_schema_rows(self, rows: list) -> str:
@@ -168,8 +164,7 @@ class MusicQueryRepository(IMusicQueryRepository):
         schema_lines = []
 
         for (raw_json,) in rows:
-            data = json.loads(raw_json)
-            schema_lines.extend(self._format_single_schema(data))
+            schema_lines.extend(self._format_single_schema(raw_json))
             schema_lines.append("")  # Add spacing between tables
 
         logging.info("Fetched database schema for meta")

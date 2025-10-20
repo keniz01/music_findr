@@ -10,13 +10,12 @@ from punq import Container
 from sqlalchemy.ext.asyncio import create_async_engine
 
 
-def setup_container() -> IMusicQueryController:
+def setup_container(connection_string: str) -> Container:
     container = Container()
 
-    connection_string = "postgresql+asyncpg://postgres:password@localhost:5432/postgres"
     engine = create_async_engine(connection_string)
 
-    repo = MusicQueryRepository(engine=engine, default_schema="analysis")
+    repo = MusicQueryRepository(engine=engine)
     container.register(IMusicQueryRepository, instance=repo)
 
     service = MusicQueryService(repository=repo)

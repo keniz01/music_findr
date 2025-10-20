@@ -199,7 +199,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from data_accessor import MusicQueryController, MusicQueryService, MusicQueryRepository
 
 engine = create_async_engine("postgresql+asyncpg://user:password@localhost/dbname")
-repo = MusicQueryRepository(default_schema="public", engine=engine)
+repo = MusicQueryRepository(engine=engine)
 service = MusicQueryService(repository=repo)
 controller = MusicQueryController(music_query_service=service)
 

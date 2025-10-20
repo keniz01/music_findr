@@ -1,6 +1,6 @@
 from typing import Generic, Optional, TypeVar
 
-from pydantic import BaseModel, Extra
+from pydantic import BaseModel
 
 T = TypeVar("T")
 
@@ -11,4 +11,4 @@ class ApiResponse(BaseModel, Generic[T]):
     error: Optional[str] = None
 
     class Config:
-        extra = Extra.forbid
+        extra = "forbid"

@@ -14,7 +14,7 @@ class TestRoutes(unittest.TestCase):
         with patch("src.boot_strap.setup_container") as mock_setup_container:
             mock_container = mock_setup_container.return_value
             mock_container.resolve.return_value = self.mock_controller
-            self.app = create_app()
+            self.app = create_app("connection_string")
             self.client = TestClient(self.app)
 
     def test_health_check(self):

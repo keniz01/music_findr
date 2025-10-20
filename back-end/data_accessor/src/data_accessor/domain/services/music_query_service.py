@@ -28,7 +28,7 @@ class MusicQueryService(IMusicQueryService):
             logging.error(f"Service: Error executing SQL: {e}")
             raise
 
-    async def get_table_schema(self, query_embeddings: list[float]) -> list:
+    async def get_table_schema(self, query_embeddings: list[float]) -> Dict[str, Any]:
         try:
             schema = await self.repository.get_table_schema(query_embeddings)
             logging.info("Service: Fetched database schema.")

@@ -26,11 +26,11 @@ router = APIRouter(prefix="/api")
     "/search",
     summary="Search By Natural Language Query",
     description="Retrieves database records matching the natural language query",
-    response_model=ApiResponse[List[Dict[str, Any]]],
+    response_model=ApiResponse[Dict[str, Any]],
 )
 async def search_by_query(
     request: SearchQueryRequest, handler: SearchHandler = Depends(get_search_handler)
-) -> ApiResponse[List[Dict[str, Any]]]:
+) -> ApiResponse[Dict[str, Any]]:
     """Process natural language search query using MCP server"""
     return await handler.search_by_query(request)
 

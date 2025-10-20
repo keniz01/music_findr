@@ -22,7 +22,7 @@ class MusicQueryController(IMusicQueryController):
             logging.error(f"Controller: Error fetching schema: {e}")
             raise
 
-    async def execute_sql_statement(self, sql: str) -> list:
+    async def execute_sql_statement(self, sql: str) -> List[Dict[str, Any]]:
         try:
             response = await self.music_query_service.execute_sql_statement(sql)
             logging.info("Controller: SQL executed successfully.")
