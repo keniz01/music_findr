@@ -8,7 +8,7 @@ from uuid import uuid4
 import time
 
 from src.config.log_config import logger
-from src.routes.search.api import search_router
+from src.routes.search.search_api import search_router
 
 
 class LoggingMiddleware(BaseHTTPMiddleware):

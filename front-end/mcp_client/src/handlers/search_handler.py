@@ -17,7 +17,7 @@ class SearchHandler:
 
     async def search_by_query(
         self, request: SearchQueryRequest
-    ) -> ApiResponse[Dict[str, Any]]:
+    ) -> ApiResponse[Any]:
         """Search for music information using natural language query"""
         if not request.query.strip():
             return ApiResponse(success=False, error="Query cannot be empty")
@@ -28,12 +28,12 @@ class SearchHandler:
             if not schema:
                 return ApiResponse(success=False, error="No relevant tables found")
             
-            sql = self._llama_model.generate_sql(query)
+            sql = self._llama_model.generate_sql(request.query)
 
             # Execute SQL for the query
             result_set = await self._execute_sql_statement(sql=sql)
 
-            response = self._llama_model.synthesise_result_set(query, result_set)
+            response = self._llama_model.synthesise_result_set(request.query, result_set)
             return ApiResponse(success=True, result=response)
 
         except Exception as e:
@@ -42,7 +42,6 @@ class SearchHandler:
     async def _get_table_schema(self, query: str) -> Dict[str, Any]:
         """Get database schema information for query"""
         async with self._client as client:
-
             query_embeddings = self._llama_model.embed_query(query)
 
             result = await client.call_tool(
@@ -52,7 +51,7 @@ class SearchHandler:
 
     async def _execute_sql_statement(self, sql: str) -> List[Dict[str, Any]]:
         """Execute SQL query via MCP server"""
-        async with self.client as client:
+        async with self._client as client:
             result = await client.call_tool(
                 "execute_sql_statement", {"sql": sql}
             )
