@@ -16,6 +16,7 @@ dependencies = [
     "black>=25.9.0",
     "isort>=6.1.0",
     "mypy>=1.18.2",
+    "llama-cpp-python>=0.3.16",
 ]
 
 [tool.black]
@@ -36,5 +37,5 @@ disallow_incomplete_defs = true
 
 [tool.hatch.envs.dev.scripts]
 typecheck = "mypy src tests"
-format = "python scripts/format.py"
+format = "python scripts/format_code.py"
 serve = "uvicorn main:app --reload --log-level debug --port 8080"

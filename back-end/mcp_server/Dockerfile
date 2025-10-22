@@ -17,6 +17,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY zscaler-root.crt /usr/local/share/ca-certificates/zscaler-root.crt
 RUN update-ca-certificates
 
+# Set Python tools to trust updated cert bundle
+ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+
+# (Optional) Confirm TLS works with real domain
+RUN curl -Iv https://files.pythonhosted.org
+
 COPY pyproject.toml uv.lock ./
 
 # Enable bytecode compilation

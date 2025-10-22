@@ -1,6 +1,7 @@
 from datetime import datetime
 from functools import lru_cache
 from typing import Any, Dict
+from punq import Container
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import JSONResponse
@@ -8,14 +9,12 @@ from fastapi.responses import JSONResponse
 from src.models.api_response import ApiResponse
 from src.models.search_query_request import SearchQueryRequest
 from src.handlers.search_handler import SearchHandler
-from src.dependencies.container import create_container
+from src.dependencies.container import ContainerFactory
 
-# ✅ Create and cache the DI container (singleton-like behavior)
 @lru_cache()
-def get_container():
-    return create_container()
+def get_container() -> Container:
+    return ContainerFactory.create_container()
 
-# ✅ Dependency resolver using punq
 def get_search_handler() -> SearchHandler:
     try:
         container = get_container()
@@ -28,8 +27,7 @@ def get_search_handler() -> SearchHandler:
 
 # ✅ API Router with prefix and tags
 router = APIRouter(
-    prefix="/api",
-    tags=["Search"]
+    prefix="/api"
 )
 
 # ✅ Natural language search endpoint
@@ -38,12 +36,13 @@ router = APIRouter(
     summary="Search by natural language query",
     description="Retrieves database records matching the provided natural language query.",
     response_model=ApiResponse[Dict[str, Any]],
+    tags=["Search"]
 )
 async def search_by_query(
     request: SearchQueryRequest,
-    handler: SearchHandler = Depends(get_search_handler),
+    search_handler: SearchHandler = Depends(get_search_handler)
 ) -> ApiResponse[Dict[str, Any]]:
-    return await handler.search_by_query(request)
+    return await search_handler.search_by_query(request)
 
 # ✅ Health check route
 @router.get(
