@@ -10,7 +10,7 @@ from src.models.api_response import ApiResponse
 from src.models.search_query_request import SearchQueryRequest
 from src.handlers.search_handler import SearchHandler
 from src.dependencies.container import ContainerFactory
-
+    
 @lru_cache()
 def get_container() -> Container:
     return ContainerFactory.create_container()
@@ -35,13 +35,13 @@ router = APIRouter(
     "/search",
     summary="Search by natural language query",
     description="Retrieves database records matching the provided natural language query.",
-    response_model=ApiResponse[Dict[str, Any]],
+    response_model=ApiResponse[Any],
     tags=["Search"]
 )
 async def search_by_query(
     request: SearchQueryRequest,
     search_handler: SearchHandler = Depends(get_search_handler)
-) -> ApiResponse[Dict[str, Any]]:
+) -> ApiResponse[Any]:
     return await search_handler.search_by_query(request)
 
 # ✅ Health check route

@@ -1,3 +1,4 @@
+import re
 from typing import Any, Dict, List
 
 from fastmcp import Client
@@ -5,13 +6,38 @@ from src.models.api_response import ApiResponse
 from src.models.search_query_request import SearchQueryRequest
 from src.models.llama_model import LlamaModel
 
+class SQLFormatter:
 
+    def __init__(self, sql: str):
+        self.sql=sql
+
+    def remove_spaces(self):
+        self.sql=self.sql.strip()
+        return self
+
+    def remove_back_ticks(self):
+        self.sql=self.sql.replace('```sql','').replace('```','')
+        return self
+
+    def remove_semi_colon(self):
+        self.sql=self.sql.replace(";",'')
+        return self
+       
+    def remove_wild_cards(self):
+        self.sql=self.sql.replace("%",'')
+        return self
+    
+    def replace_equals_with_ilike(self):
+        pattern = r"=\s*'([^']*)'"
+        self.sql = re.sub(pattern, r" ILIKE '\1'", self.sql)       
+        return self
+    
 class SearchHandler:
     """Handles search operations using the MCP server"""
 
     def __init__(self, llama_model: LlamaModel, client: Client) -> None:
-        self._client = client
-        self._llama_model = llama_model
+        self._client=client
+        self._llama_model=llama_model
 
     async def search_by_query(
         self, request: SearchQueryRequest
@@ -25,11 +51,20 @@ class SearchHandler:
             if not schema:
                 return ApiResponse(success=False, error="No relevant tables found")
 
-            sql = self._llama_model.generate_sql(request.query)
-            result_set = await self._execute_sql_statement(sql=sql)
+            sql = self._llama_model.generate_sql(request.query, schema)
+            formatter = SQLFormatter(sql)
+            formatted_sql = (
+                formatter.remove_spaces()
+                        .remove_back_ticks()
+                        .remove_wild_cards()
+                        .remove_semi_colon()
+                        .replace_equals_with_ilike()
+                        .sql
+            )
+            sql_response = await self._execute_sql_statement(sql=formatted_sql)
 
-            response = self._llama_model.synthesise_sql_result(request.query, result_set)
-            return ApiResponse(success=True, result=response)
+            # response = self._llama_model.synthesise_sql_result(request.query, result_set)
+            return ApiResponse(success=True, result=sql_response)
 
         except Exception as e:
             return ApiResponse(success=False, error=str(e))

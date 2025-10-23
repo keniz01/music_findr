@@ -15,3 +15,4 @@ secrets.toml
 coverage_html_report
 .coverage
 htmlcov
+.env
