@@ -29,7 +29,7 @@ class LlamaModel:
         """Converts a natural language query into an embedding vector"""
         return self._text_encoder.embed(query)
 
-    def generate_sql(self, query: str, schema:str) -> str:
+    def generate_sql(self, query: str, schema: str) -> str:
         """Generates SQL statement from a natural language query"""
         prompt=f"""<|system|>You must use the context to generate a correct Postgres SQL statement to answer the question at the end.
 Strictly only use table and column names defined in the context and you must use table and column aliases.
@@ -63,10 +63,42 @@ Question: {query}
         sql=completion_response["choices"][0]["text"]
         return sql.strip()
 
-    def synthesise_sql_result(self, query: str, result_set: List[Dict[str, Any]]) -> Any:
+    def summarise_sql_result(self, user_query: str, sql_response: List[Dict[str, Any]], sql_query: str) -> Any:
         """Converts raw SQL results into a user-friendly format"""
-        # Could format results or apply further processing
-        return {
-            "query": query,
-            "results": result_set
-        }
+        prompt = f"""
+<|system|>
+<|system|>
+You are an expert data summarizer.
+Your task is to describe what the SQL query results show, briefly and factually.
+Focus only on the key content or information returned — not the SQL details or data structure.
+Write in one or two short, clear sentences.
+Avoid explanations, assumptions, or analysis beyond what is explicitly in the data.
+<|end|>
+
+<|user|>
+User’s question or request:
+{user_query}
+<|end|>
+
+<|user|>
+Executed SQL query:
+{sql_query}
+<|end|>
+
+<|assistant|>
+Query results:
+{sql_response}
+<|end|>
+
+<|user|>
+Summarize the result in a concise, natural way. 
+- Focus on the meaning and key takeaways from the content.
+- Avoid technical terms like “columns” or “rows” unless absolutely necessary.
+- Keep the summary factual, coherent, and concise.
+<|end|>
+
+<|assistant|>
+"""
+        completion_response=self._text_generator(prompt, max_tokens=2048)
+        summary=completion_response["choices"][0]["text"]
+        return summary.strip()

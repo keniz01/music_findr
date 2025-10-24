@@ -1,5 +1,8 @@
+import json
 import re
+from loguru import logger
 from typing import Any, Dict, List
+
 
 from fastmcp import Client
 from src.models.api_response import ApiResponse
@@ -63,8 +66,8 @@ class SearchHandler:
             )
             sql_response = await self._execute_sql_statement(sql=formatted_sql)
 
-            # response = self._llama_model.synthesise_sql_result(request.query, result_set)
-            return ApiResponse(success=True, result=sql_response)
+            summary = self._llama_model.summarise_sql_result(request.query, sql_response, formatted_sql)
+            return ApiResponse(success=True, result=summary)
 
         except Exception as e:
             return ApiResponse(success=False, error=str(e))
@@ -73,9 +76,31 @@ class SearchHandler:
         async with self._client as client:
             query_embeddings = self._llama_model.embed_query(query)
             result = await client.call_tool("get_table_schema", {"query_embeddings": query_embeddings})
-            return result.data
+            
+            if result.is_error:
+                logger.error(f"Query embeddings failed: {result}")
+                raise RuntimeError("Query embeddings failed")
 
-    async def _execute_sql_statement(self, sql: str) -> List[Dict[str, Any]]:
+            if result.content and len(result.content) > 0:
+                raw_text = result.content[0].text.strip()
+                try:
+                    parsed = json.loads(raw_text)
+                    # Sometimes schema info is nested under "schema" key
+                    schema_info = parsed.get("schema", parsed)
+                    logger.debug("Parsed schema from JSON text successfully.")
+                    return schema_info
+                except json.JSONDecodeError:
+                    logger.warning("Schema response not valid JSON; returning raw text.")
+                    return {"raw_schema": raw_text}
+
+    async def _execute_sql_statement(self, sql: str) -> List[dict[str, Any]]:
         async with self._client as client:
             result = await client.call_tool("execute_sql_statement", {"sql": sql})
-            return result.data
+            
+            if result.is_error:
+                logger.error(f"SQL execution failed: {result}")
+                raise RuntimeError("SQL execution failed")
+
+            logger.debug(f"SQL Execution Result: {result.structured_content}")
+            return result.structured_content.get("result", [])
+
