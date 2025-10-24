@@ -28,9 +28,9 @@ class SQLExecutor:
         return result.data
 
 
-class SQLResultSynthesizer:
+class SQLResultSummarizer:
     def __init__(self, llama_model: LlamaModel):
         self._llama_model = llama_model
 
-    def synthesize(self, query: str, sql_result_set: List[Dict[str, Any]]) -> Any:
-        return self._llama_model.synthesise_prompt(query, sql_result_set)
+    def summarise(self, query: str, sql_result_set: List[Dict[str, Any]]) -> Any:
+        return self._llama_model.summarise(query, sql_result_set)

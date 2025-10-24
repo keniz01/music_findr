@@ -1,5 +1,5 @@
 import os
-from typing import Any, List, Dict
+from typing import Any, List, Dict, Union
 from llama_cpp import Llama, LLAMA_POOLING_TYPE_NONE
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -38,21 +38,21 @@ You must only return valid SQL - do not explain, advice or assume.<|end|>
 <|user|>
 Count albums distributed by record label 'Greenesleeves'<|end|>
 <|assistant|>
-select count(a.*) album_count 
-from album a 
-inner join record_label rl on rl.label_id = a.label_id 
+select count(a.*) album_count
+from album a
+inner join record_label rl on rl.label_id = a.label_id
 where rl.label_name ILIKE 'Greensleeves Records';<|end|>
 <|user|>
 How many albums does the recording artist 'Gregory Isaacs' have?<|end|>
 <|assistant|>
-SELECT COUNT(al.*) 
+SELECT COUNT(al.*)
 FROM album al;<|end|>
 <|user|>
 Show all tracks on the album 'Soca Xplosion 2007' have?<|end|>
 <|assistant|>
-SELECT tr.track_id, tr.title, tr.duration, tr.position, tr.release_year, tr.genre_id, tr.label_id, tr.artist_id, tr.album_id 
+SELECT tr.track_id, tr.title, tr.duration, tr.position, tr.release_year, tr.genre_id, tr.label_id, tr.artist_id, tr.album_id
 FROM track tr
-INNER JOIN album al on al.album_id=tr.album_id 
+INNER JOIN album al on al.album_id=tr.album_id
 WHERE al.title ILIKE 'Soca Xplosion';<|end|>
 <|user|>
 Context: {schema}
@@ -63,7 +63,7 @@ Question: {query}
         sql=completion_response["choices"][0]["text"]
         return sql.strip()
 
-    def summarise_sql_result(self, user_query: str, sql_response: List[Dict[str, Any]], sql_query: str) -> Any:
+    def summarise(self, user_query: str, sql_response: List[Dict[str, Any]], sql_query: str) -> Union[str, Dict[str, Any]]:
         """Converts raw SQL results into a user-friendly format"""
         prompt = f"""
 <|system|>
@@ -91,7 +91,7 @@ Query results:
 <|end|>
 
 <|user|>
-Summarize the result in a concise, natural way. 
+Summarize the result in a concise, natural way.
 - Focus on the meaning and key takeaways from the content.
 - Avoid technical terms like “columns” or “rows” unless absolutely necessary.
 - Keep the summary factual, coherent, and concise.

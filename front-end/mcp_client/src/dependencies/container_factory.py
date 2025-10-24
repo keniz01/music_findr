@@ -1,14 +1,12 @@
-from typing import Optional
 from punq import Container, Scope
 from fastmcp import Client
 
-from src.config import mcp_config as config
 from src.config.mcp_config import create_mcp_client
 from src.models.llama_model import LlamaModel
 from src.handlers.search_handler import SearchHandler
 from src.services.search_services import (
     SQLExecutor,
-    SQLResultSynthesizer,
+    SQLResultSummarizer,
     SQLGenerator,
     TableSchemaRetriever,
 )
@@ -37,7 +35,7 @@ def _register_search_services(container: Container) -> None:
         TableSchemaRetriever,
         SQLGenerator,
         SQLExecutor,
-        SQLResultSynthesizer,
+        SQLResultSummarizer,
     ):
         container.register(service_cls)  # Default: transient scope
 
@@ -55,7 +53,7 @@ def _validate_container(container: Container) -> None:
         TableSchemaRetriever,
         SQLGenerator,
         SQLExecutor,
-        SQLResultSynthesizer,
+        SQLResultSummarizer,
     )
 
     try:
