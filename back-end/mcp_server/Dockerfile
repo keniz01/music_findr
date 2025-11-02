@@ -1,54 +1,36 @@
-# Use a Python image with uv pre-installed
+# Use official Python 3.12 slim image
 FROM python:3.12-slim
-COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-RUN uv --version
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1
 
-# Install the project into `/app`
+# Set working directory
 WORKDIR /app
 
-# 🔐 Install CA certificates
+# Install system dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+    build-essential \
+    curl \
+    git \
+    bash \
+    && rm -rf /var/lib/apt/lists/*
 
-# Add custom certificate to trusted store
-COPY zscaler-root.crt /usr/local/share/ca-certificates/zscaler-root.crt
-RUN update-ca-certificates
+# Install Hatch
+RUN pip install --upgrade pip hatch
 
-# Set Python tools to trust updated cert bundle
-ENV REQUESTS_CA_BUNDLE=/etc/ssl/certs/ca-certificates.crt
+# Copy project metadata first (so Docker cache isn’t invalidated by code changes)
+COPY pyproject.toml README.md ./
 
-# (Optional) Confirm TLS works with real domain
-RUN curl -Iv https://files.pythonhosted.org
+# Create Hatch dev environment inside the container
+RUN hatch env create dev
 
-COPY pyproject.toml uv.lock ./
+# Copy in lockfile (if you’re using it for dependency resolution)
+COPY uv.lock ./
 
-# Enable bytecode compilation
-ENV UV_COMPILE_BYTECODE=1
+# Expose app port
+EXPOSE 8002
 
-# Copy from the cache instead of linking since it's a mounted volume
-ENV UV_LINK_MODE=copy
-# Install the project's dependencies using the lockfile and settings
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --locked --no-install-project --no-dev
-
-# Then, add the rest of the project source code and install it
-# Installing separately from its dependencies allows optimal layer caching
-COPY . /app
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-dev
-
-# Place executables in the environment at the front of the path
-ENV PATH="/app/.venv/bin:$PATH"
-
-# Reset the entrypoint, don't invoke `uv`
-ENTRYPOINT []
-
-EXPOSE 8000
-
-# Default command: run dev server
+# Default command: run the dev server
 CMD ["hatch", "run", "dev:serve"]

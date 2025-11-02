@@ -67,7 +67,7 @@ uv build
 Start a local HTTP server to distribute the built package:
 
 ```sh
-cd dist && python -m http.server 8080
+cd dist && python -m http.server 8001
 ```
 
 ### Install the Package on a Client
@@ -75,7 +75,7 @@ cd dist && python -m http.server 8080
 Install from your local server:
 
 ```sh
-uv add --find-links http://localhost:8080 --index https://pypi.org/simple data_accessor
+uv add --find-links http://localhost:8001 --index https://pypi.org/simple data_accessor
 ```
 
 ### Remove the Installed Package

@@ -1,6 +1,6 @@
 from datetime import datetime
 from functools import lru_cache
-from typing import Any, Dict
+from typing import Any
 from punq import Container
 
 from fastapi import APIRouter, Depends, HTTPException

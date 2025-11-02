@@ -1,0 +1,6 @@
+FROM 3x3cut0r/llama-cpp-python:latest
+
+# Install bash on Alpine
+RUN apk add --no-cache bash
+
+WORKDIR /app

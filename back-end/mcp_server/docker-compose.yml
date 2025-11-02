@@ -1,20 +1,24 @@
 services:
-  mcp-server:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: mcp-server:dev
+  mcp_server:
+    build: .
+    container_name: mcp_server
+    secrets:
+      - DATABASE_URL    
     ports:
-      - "8000:8000"
-    volumes:
-      - .:/app:delegated
-      - /app/.venv  # anonymous volume so container's venv persists
+      - "8002:8002"
     environment:
-      - UV_COMPILE_BYTECODE=1
-      - UV_LINK_MODE=copy
-    healthcheck:
-      test: ["CMD", "curl", "--fail", "http://localhost:8000/api/healthz"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
+      PYTHONPATH: "src"
+      DATABASE_URL_FILE: /run/secrets/DATABASE_URL
+    volumes:
+      # Mount only source and config for live reload
+      - ./main.py:/app/main.py
+      - ./src:/app/src
+      - ./pyproject.toml:/app/pyproject.toml
+      - ./uv.lock:/app/uv.lock
+      - ../data_accessor:/app/../data_accessor
     command: hatch run dev:serve
+
+secrets:
+  DATABASE_URL:
+    file: ./secrets/DATABASE_URL
+
