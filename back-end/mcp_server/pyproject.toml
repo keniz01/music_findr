@@ -16,6 +16,7 @@ dependencies = [
     "mcp[cli]>=1.16.0",
     "httpx>=0.28.1",
     "pydantic-settings>=2.11.0",
+    "loguru>=0.7.3",
 ]
 
 [build-system]
@@ -46,7 +47,7 @@ python -m coverage run -m unittest discover -s tests -v && \
 python -m coverage report
 """
 format = "black src tests && isort src tests"
-serve = "uvicorn main:app --reload --log-level debug --port 8000"
+serve = "uvicorn main:app --reload --log-level debug --host 0.0.0.0 --port 8002"
 
 [tool.hatch.envs.dev.post-install]
 commands = [

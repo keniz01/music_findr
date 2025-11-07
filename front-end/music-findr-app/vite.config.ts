@@ -9,7 +9,7 @@ export default defineConfig({
     proxy: {
       // Proxy /search requests to backend
       "/api/search": {
-        target: "http://127.0.0.1:8080",
+        target: "http://mcp_client:8001",
         changeOrigin: true,
         secure: false
       }

@@ -1,0 +1,46 @@
+# --- Node dependencies ---
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# --- Build output ---
+dist/
+build/
+
+# --- Environment files ---
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# --- Git and IDE files ---
+.git/
+.gitignore
+.gitattributes
+.vscode/
+.idea/
+*.swp
+
+# --- System files ---
+.DS_Store
+Thumbs.db
+
+# --- Test and coverage ---
+coverage/
+*.spec.ts
+*.spec.tsx
+*.test.ts
+*.test.tsx
+jest.config.js
+vitest.config.ts
+.vitest/
+
+# --- Docker ---
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# --- Other project-specific exclusions ---
+*.pem
+*.key

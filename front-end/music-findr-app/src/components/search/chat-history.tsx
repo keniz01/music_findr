@@ -28,7 +28,7 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({ messages }) => {
           {/* AI Response - Left aligned */}
           <div className="flex justify-start">
             <div className="max-w-[85%] sm:max-w-[80%] bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg px-3 py-2 shadow-sm">
-              <p className="text-sm whitespace-pre-wrap break-words">
+              <p className="text-sm whitespace-pre-wrap break-words text-left">
                 {message.response}
               </p>
             </div>

@@ -1,0 +1,148 @@
+services:
+  # -----------------------------
+  # 🧠 Backend MCP Server
+  # -----------------------------
+  mcp_server:
+    build: ./back-end/mcp_server
+    container_name: mcp_server
+    ports:
+      - "8002:8002"
+    secrets:
+      - DATABASE_URL
+    environment:
+      PYTHONPATH: "src"
+      DATABASE_URL_FILE: /run/secrets/DATABASE_URL
+    volumes:
+      # Mount for live reload
+      - ./back-end/mcp_server/main.py:/app/main.py
+      - ./back-end/mcp_server/src:/app/src
+      - ./back-end/mcp_server/pyproject.toml:/app/pyproject.toml
+      - ./back-end/mcp_server/uv.lock:/app/uv.lock
+      - ./back-end/data_accessor:/app/../data_accessor
+    depends_on:
+      - llama-cpp-server
+    command: >
+      bash -c "
+      echo -e '\033[1;34m[DEBUG][MCP_SERVER] 🚀 Starting mcp_server container...\033[0m';
+      hatch run dev:serve;
+      EXIT_CODE=$?;
+      # Ensure EXIT_CODE is numeric
+      if ! [[ \"\$EXIT_CODE\" =~ ^[0-9]+$ ]]; then
+        EXIT_CODE=1
+      fi;      
+      if [ $EXIT_CODE -eq 0 ]; then
+        echo -e '\033[1;32m[DEBUG][MCP_SERVER] ✅ mcp_server started successfully on port 8002.\033[0m';
+      else
+        echo -e '\033[1;31m[DEBUG][MCP_SERVER] ❌ mcp_server exited with code $EXIT_CODE.\033[0m';
+      fi;
+      exit $EXIT_CODE
+      "
+
+  # -----------------------------
+  # 💻 Frontend MCP Client
+  # -----------------------------
+  mcp_client:
+    build: ./front-end/mcp_client
+    container_name: mcp_client
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./front-end/mcp_client:/app
+    environment:
+      PYTHONUNBUFFERED: 1
+      LLAMA_API_BASE: "http://llama-cpp-server:8000/v1"   # 👈 Add this line
+    depends_on:
+      - mcp_server
+      - llama-cpp-server                                 # 👈 Optionally ensure llama starts first
+    command: >
+      bash -c "
+      echo -e '\033[1;34m[DEBUG][MCP_CLIENT] 🚀 Starting mcp_client container...\033[0m';
+      hatch run dev:serve;
+      EXIT_CODE=$?;
+      # Ensure EXIT_CODE is numeric
+      if ! [[ \"\$EXIT_CODE\" =~ ^[0-9]+$ ]]; then
+        EXIT_CODE=1
+      fi;      
+      if [ $EXIT_CODE -eq 0 ]; then
+        echo -e '\033[1;32m[DEBUG][MCP_CLIENT] ✅ mcp_client started successfully on port 8001.\033[0m';
+      else
+        echo -e '\033[1;31m[DEBUG][MCP_CLIENT] ❌ mcp_client exited with code $EXIT_CODE.\033[0m';
+      fi;
+      exit $EXIT_CODE
+      "
+
+  # -----------------------------
+  # 🎵 Music Findr Web App (UI)
+  # -----------------------------
+  music-findr-app:
+    build: ./front-end/music-findr-app
+    container_name: music-findr-app
+    ports:
+      - "5173:80"
+    restart: unless-stopped
+    depends_on:
+      - mcp_client
+    command: >
+      sh -c "
+      echo -e '\033[1;34m[DEBUG][MUSIC_FINDR_APP] 🚀 Starting music-findr-app container...\033[0m';
+      nginx -g 'daemon off;';
+      EXIT_CODE=$?;
+      # Ensure EXIT_CODE is numeric
+      if ! [[ \"\$EXIT_CODE\" =~ ^[0-9]+$ ]]; then
+        EXIT_CODE=1
+      fi;      
+      if [ $EXIT_CODE -eq 0 ]; then
+        echo -e '\033[1;32m[DEBUG][MUSIC_FINDR_APP] ✅ music-findr-app started successfully on port 5173.\033[0m';
+      else
+        echo -e '\033[1;31m[DEBUG][MUSIC_FINDR_APP] ❌ music-findr-app exited with code $EXIT_CODE.\033[0m';
+      fi;
+      exit $EXIT_CODE
+      "
+
+  # -----------------------------
+  # 🦙 LLaMA CPP Model Server
+  # -----------------------------
+  llama-cpp-server:
+    build:
+      context: .
+      dockerfile: config/Dockerfile.llama_cpp_server
+    container_name: llama-cpp-server
+    restart: unless-stopped
+    environment:
+      MODEL_DOWNLOAD: "false"
+      MODEL_REPO: "local"
+    volumes:
+      - ../models:/model
+      - ./config:/config
+    ports:
+      - "7001:8000"
+    command: >
+      bash -c "
+      echo -e '\033[1;34m[DEBUG][LLAMA_CPP_SERVER] 🚀 Starting llama-cpp-server container...\033[0m';
+      python3 -m llama_cpp.server --config_file /config/llama_cpp_server.json;
+      EXIT_CODE=\$?;
+      # Ensure EXIT_CODE is numeric
+      if ! [[ \"\$EXIT_CODE\" =~ ^[0-9]+$ ]]; then
+        EXIT_CODE=1
+      fi;
+      if [ $EXIT_CODE -eq 0 ]; then
+        echo -e '\033[1;32m[DEBUG][LLAMA_CPP_SERVER] ✅ llama-cpp-server started successfully on port 5001.\033[0m';
+      else
+        echo -e '\033[1;31m[DEBUG][LLAMA_CPP_SERVER] ❌ llama-cpp-server exited with code \$EXIT_CODE.\033[0m';
+      fi;
+      exit \$EXIT_CODE
+      "
+
+# -----------------------------
+# 🔐 Secrets
+# -----------------------------
+secrets:
+  DATABASE_URL:
+    file: ./back-end/mcp_server/secrets/DATABASE_URL
+
+# -----------------------------
+# 🌐 Shared Network
+# -----------------------------
+networks:
+  default:
+    name: music_findr_network
