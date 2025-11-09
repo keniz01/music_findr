@@ -1,6 +1,0 @@
-services:
-  music-findr-app:
-    build: .
-    ports:
-      - "5173:80"  # Map container's port 80 to host 3000
-    restart: unless-stopped
