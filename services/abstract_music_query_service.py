@@ -11,6 +11,6 @@ class IMusicQueryService(ABC):
         raise NotImplementedError("This method should be overridden by subclasses.")
 
     @abstractmethod
-    async def get_table_schema(self, embeddings: List[float]) -> Dict[str, Any]:
+    async def get_table_schema(self, query_embeddings: List[float]) -> Dict[str, Any]:
         """Get table schema information using vector embeddings"""
         raise NotImplementedError("This method should be overridden by subclasses.")

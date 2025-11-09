@@ -1,9 +1,8 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from ..interfaces.music_query_repository import IMusicQueryRepository
-from ..interfaces.music_query_service import IMusicQueryService
-
+from repositories.abstract_music_query_repository import IMusicQueryRepository
+from services.abstract_music_query_service import IMusicQueryService
 
 class MusicQueryService(IMusicQueryService):
     """
@@ -28,7 +27,7 @@ class MusicQueryService(IMusicQueryService):
             logging.error(f"Service: Error executing SQL: {e}")
             raise
 
-    async def get_table_schema(self, query_embeddings: list[float]) -> Dict[str, Any]:
+    async def get_table_schema(self, query_embeddings: List[float]) -> Dict[str, Any]:
         try:
             schema = await self.repository.get_table_schema(query_embeddings)
             logging.info("Service: Fetched database schema.")

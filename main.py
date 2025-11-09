@@ -1,6 +1,38 @@
-def main():
-    print("Hello from music-findr!")
+from fastapi import FastAPI, HTTPException
+from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
+from middlewares.logging_middleware import LoggingMiddleware
+from middlewares.correlation_middleware import correlation_id_middleware
+from exceptions.exception_handlers import http_exception_handler, validation_exception_handler
+from graphql_schema.schema import schema
+from strawberry.fastapi import GraphQLRouter
+from config.app_logger import logger
 
+async def lifespan(app: FastAPI):
+    logger.info("🚀 Starting FastAPI application...")
+    yield
+    logger.info("🛑 Shutting down FastAPI application...")
 
-if __name__ == "__main__":
-    main()
+# App setup
+app = FastAPI(title="Postgres SQL API", version="1.0.0", lifespan=lifespan)
+
+# CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Custom middlewares
+app.add_middleware(LoggingMiddleware)
+app.middleware("http")(correlation_id_middleware)
+
+# Exception handlers
+app.add_exception_handler(HTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
+
+# GraphQL
+graphql_router = GraphQLRouter(schema)
+app.include_router(graphql_router, prefix="/graphql")
