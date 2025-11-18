@@ -3,7 +3,8 @@ import time
 import uuid
 from fastapi import Request, Response
 
-async def correlation_id_middleware(request: Request, call_next):
+
+async def correlation_id_middleware(request: Request, call_next) -> Response:
     """
     Middleware that injects a Correlation ID into every request and response.
     Useful for distributed tracing and log correlation.
@@ -18,10 +19,7 @@ async def correlation_id_middleware(request: Request, call_next):
     try:
         response: Response = await call_next(request)
     except Exception as e:
-        response = Response(
-            content=f"Internal server error: {str(e)}",
-            status_code=500
-        )
+        response = Response(content=f"Internal server error: {str(e)}", status_code=500)
         response.headers["X-Query-Status"] = "Error"
         logging.exception(f"[{correlation_id}] Unhandled exception: {e}")
 

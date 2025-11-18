@@ -26,6 +26,7 @@ logger.add(
     ),
 )
 
+
 # -----------------------------------------------------------------------------
 # Container Setup
 # -----------------------------------------------------------------------------
@@ -45,7 +46,10 @@ def setup_container(connection_string: str) -> Container:
     try:
         # Create database engine
         logger.debug("Creating async SQLAlchemy engine...")
-        engine: Final[AsyncEngine] = create_async_engine(connection_string, echo=False, future=True)
+        engine: Final[AsyncEngine] = create_async_engine(
+            connection_string, echo=False, future=True, pool_pre_ping=True
+        )
+
         logger.success("Async SQLAlchemy engine created successfully.")
 
         # Register repository

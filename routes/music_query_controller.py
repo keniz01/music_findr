@@ -1,6 +1,6 @@
 import logging
 import os
-from typing import Any, List
+from typing import Any, Callable, List
 
 import strawberry
 from strawberry.fastapi import GraphQLRouter
@@ -27,8 +27,8 @@ class SqlStatementRequest:
 # JSON scalar for dynamic result sets
 @strawberry.scalar(description="Arbitrary JSON object")
 class JSON:
-    serialize = lambda v: v
-    parse_value = lambda v: v
+    serialize: Callable[[Any], Any] = staticmethod(lambda value: value)
+    parse_value: Callable[[Any], Any] = staticmethod(lambda value: value)
 
 
 # GraphQL Query type

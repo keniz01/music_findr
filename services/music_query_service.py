@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional
 from repositories.abstract_music_query_repository import IMusicQueryRepository
 from services.abstract_music_query_service import IMusicQueryService
 
+
 class MusicQueryService(IMusicQueryService):
     """
     Service class for music queries.
