@@ -1,4 +1,4 @@
-import os
+import os, textwrap
 
 class ForbiddenSqlStatementException(Exception):
     def __init__(self, message: str):

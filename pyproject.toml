@@ -47,6 +47,8 @@ select = [
     "C4",        # Comprehensions
     "T20",       # Print statements
     "SIM",       # Code simplification
+    "F401",      # Unused imports
+    "W291",      # Trailing whitespace
     "PD002", "PD003", "PD004",  # Pandas best practices
 ]
 
