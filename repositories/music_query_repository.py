@@ -11,7 +11,7 @@ from exceptions.forbidden_sql_statement_exception import ForbiddenSqlStatementEx
 from exceptions.sql_statement_execution_exception import SqlStatementExecutionException
 
 from exceptions.exception_handlers import raise_sql_execution_exception
-from repositories.helpers.sql_helpers import DefaultSqlSafetyChecker, SqlSafetyChecker
+from repositories.sql_validators.sql_safety_checker import DefaultSqlSafetyChecker, SqlSafetyChecker
 
 
 class MusicQueryRepository(IMusicQueryRepository):
@@ -22,7 +22,7 @@ class MusicQueryRepository(IMusicQueryRepository):
     def __init__(
         self,
         engine: AsyncEngine,
-        sql_safety_checker: SqlSafetyChecker = DefaultSqlSafetyChecker(),
+        sql_safety_checker: SqlSafetyChecker,
     ) -> None:
         self._engine: AsyncEngine = engine
         self._sql_safety_checker: SqlSafetyChecker = sql_safety_checker

@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List
+from typing import List, Protocol
 from repositories.sql_validators.rules.sql_rules import (
     MustBeSelectRule,
     NoCommentRule,
@@ -20,6 +20,9 @@ import sqlparse
 # ----------------------
 # Checker
 # ----------------------
+
+class SqlSafetyChecker(Protocol):
+    def is_safe_select_query(self, query: str) -> bool: ...
 
 class DefaultSqlSafetyChecker:
     """

@@ -1,6 +1,7 @@
 import sys
 from typing import Final
 from punq import Container
+from repositories.sql_validators.sql_safety_checker import DefaultSqlSafetyChecker
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine
 from loguru import logger
 
@@ -54,7 +55,8 @@ def setup_container(connection_string: str) -> Container:
 
         # Register repository
         logger.debug("Initializing MusicQueryRepository...")
-        repo = MusicQueryRepository(engine=engine)
+        sql_safety_checker = DefaultSqlSafetyChecker()
+        repo = MusicQueryRepository(engine=engine, sql_safety_checker=sql_safety_checker)
         container.register(IMusicQueryRepository, instance=repo)
         logger.success("Registered IMusicQueryRepository -> MusicQueryRepository")
 
