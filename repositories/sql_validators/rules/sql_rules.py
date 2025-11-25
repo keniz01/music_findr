@@ -1,27 +1,40 @@
 from __future__ import annotations
-from typing import Protocol, Iterable
+from typing import Protocol, Iterable, List
 import sqlparse
-from sqlparse.sql import Statement
+from sqlparse.sql import (
+    Statement, Function, Parenthesis, TokenList
+)
 from sqlparse import tokens as T
 
 
-# ----------------------
-# Rule Protocol
-# ----------------------
+# ============================================================
+# Base Rule Protocol
+# ============================================================
 
 class SqlSafetyRule(Protocol):
     """Return True if the query passes the rule; False otherwise."""
-    def check(self, stmt: Statement, raw: str) -> bool: ...
+    def check(self, stmt: Statement, raw: str) -> bool:
+        ...
 
 
-# ----------------------
-# Rule Implementations
-# ----------------------
+# ============================================================
+# Utility helpers
+# ============================================================
+
+def flatten(stmt: TokenList):
+    return (t for t in stmt.flatten())
+
+def any_token(stmt: TokenList, predicate):
+    return any(predicate(t) for t in flatten(stmt))
+
+
+# ============================================================
+# Fundamental Rules
+# ============================================================
 
 class SingleStatementRule:
     def check(self, stmt: Statement, raw: str) -> bool:
-        parsed = sqlparse.parse(raw)
-        return len(parsed) == 1
+        return len(sqlparse.parse(raw)) == 1
 
 
 class MustBeSelectRule:
@@ -29,23 +42,21 @@ class MustBeSelectRule:
         return stmt.get_type() == "SELECT"
 
 
-class NoWithCTERule:
-    def check(self, stmt: Statement, raw: str) -> bool:
-        return all(
-            not (token.ttype is T.CTE or token.match(T.Keyword.CTE, "WITH"))
-            for token in stmt.flatten()
-        )
-
-
 class NoSemicolonRule:
     def check(self, stmt: Statement, raw: str) -> bool:
-        return ";" not in raw.rstrip().rstrip(";")  # no trailing semi either
+        return ";" not in raw.rstrip().rstrip(";")
 
 
 class NoCommentRule:
     def check(self, stmt: Statement, raw: str) -> bool:
-        return all(t.ttype not in (T.Comment, T.Comment.Single, T.Comment.Multiline)
-                   for t in stmt.flatten())
+        return not any_token(
+            stmt, lambda t: t.ttype in (T.Comment, T.Comment.Single, T.Comment.Multiline)
+        )
+
+
+class NoWithCTERule:
+    def check(self, stmt: Statement, raw: str) -> bool:
+        return not any_token(stmt, lambda t: t.match(T.Keyword.CTE, "WITH"))
 
 
 class NoForbiddenKeywordsRule:
@@ -53,8 +64,59 @@ class NoForbiddenKeywordsRule:
         self.forbidden = {kw.lower() for kw in forbidden}
 
     def check(self, stmt: Statement, raw: str) -> bool:
-        for token in stmt.flatten():
-            if token.ttype in (T.Keyword, T.DML, T.DDL):
-                if token.value.lower() in self.forbidden:
-                    return False
-        return True
+        return not any_token(
+            stmt,
+            lambda t: (t.ttype in (T.DDL, T.DML, T.Keyword))
+            and t.value.lower() in self.forbidden,
+        )
+
+
+# ============================================================
+# Structure-Level Rules (More Advanced)
+# ============================================================
+
+class NoSubqueryRule:
+    """Disallow SELECT inside parentheses or nested SELECTs."""
+    def check(self, stmt: Statement, raw: str) -> bool:
+        return not any(
+            isinstance(tok, Parenthesis) and "select" in tok.value.lower()
+            for tok in stmt.tokens
+        )
+
+
+class NoUnionOrSetOpsRule:
+    def check(self, stmt: Statement, raw: str) -> bool:
+        # UNION, INTERSECT, EXCEPT
+        set_ops = {"union", "intersect", "except"}
+        return not any_token(
+            stmt, lambda t: t.ttype == T.Keyword and t.value.lower() in set_ops
+        )
+
+
+class NoJoinRule:
+    def check(self, stmt: Statement, raw: str) -> bool:
+        return not any_token(stmt, lambda t: t.match(T.Keyword, "JOIN"))
+
+
+class NoOrderGroupHavingRule:
+    def check(self, stmt: Statement, raw: str) -> bool:
+        forbidden = {"order", "group", "having"}
+        return not any_token(
+            stmt,
+            lambda t: t.ttype == T.Keyword and t.value.lower() in forbidden
+        )
+
+
+class NoLimitOffsetRule:
+    def check(self, stmt: Statement, raw: str) -> bool:
+        forbidden = {"limit", "offset", "fetch"}
+        return not any_token(
+            stmt,
+            lambda t: t.ttype == T.Keyword and t.value.lower() in forbidden
+        )
+
+
+class NoFunctionsRule:
+    """Disallow ANY function call: SUM(), NOW(), LOWER(), etc."""
+    def check(self, stmt: Statement, raw: str) -> bool:
+        return not any(isinstance(tok, Function) for tok in flatten(stmt))
