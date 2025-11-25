@@ -16,3 +16,43 @@ dependencies = [
     "strawberry-graphql[debug-server,fastapi]>=0.284.2",
     "uvicorn>=0.38.0",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.14.5",
+]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+fixable = []  # Check-only mode (no auto-fixing)
+indent-width = 4
+
+[tool.ruff.lint]
+select = [
+    "E", "W",    # PEP 8 errors and warnings
+    "F",         # Pyflakes
+    "I",         # Import sorting
+    "N",         # Naming conventions
+    "D",         # Docstrings
+    "UP",        # Python modernization
+    "ANN",       # Type annotations
+    "S",         # Security checks
+    "B",         # Bug detection
+    "C4",        # Comprehensions
+    "T20",       # Print statements
+    "SIM",       # Code simplification
+    "PD002", "PD003", "PD004",  # Pandas best practices
+]
+
+ignore = [
+    "D107", "D100", "D104",  # Docstring rules
+    "D203", "D212", "D205",
+    "ANN204", "ANN101", "ANN102",  # Type annotations for special methods
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10

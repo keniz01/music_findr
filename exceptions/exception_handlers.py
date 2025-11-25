@@ -6,6 +6,7 @@ from config.app_logger import logger
 
 from exceptions.sql_statement_execution_exception import SqlStatementExecutionException
 
+
 def raise_sql_execution_exception(
     message: str, error: Exception, include_traceback: bool = False
 ) -> None:
@@ -27,12 +28,18 @@ def raise_sql_execution_exception(
     logging.error(message, exc_info=True)
     raise SqlStatementExecutionException(formatted_message) from error
 
+
 async def http_exception_handler(request: Request, exc: HTTPException):
     logger.warning(f"⚠️ HTTPException: {exc.detail} | Path: {request.url.path}")
     return JSONResponse(
         status_code=exc.status_code,
-        content={"error": "HTTPException", "message": exc.detail, "path": request.url.path},
+        content={
+            "error": "HTTPException",
+            "message": exc.detail,
+            "path": request.url.path,
+        },
     )
+
 
 async def validation_exception_handler(request: Request, exc: RequestValidationError):
     logger.error(f"🛑 ValidationError at {request.url.path}: {exc.errors()}")
@@ -45,4 +52,3 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
             "path": request.url.path,
         },
     )
-

@@ -4,6 +4,8 @@ Use UV to to initialise a project and create virtual environment
 
 uvicorn main:app --reload --log-level debug --port 8000
 
-export DATABASE_URL="postgresql://user:password@localhost:5432/mydb"
+export DATABASE_URL="postgresql+asyncpg://user:password@localhost:5432/mydb"
 
-setx DATABASE_URL "postgresql://user:password@localhost:5432/mydb"
+Windows
+setx DATABASE_URL "postgresql+asyncpg://user:password@localhost:5432/mydb"
+ $env:DATABASE_URL="postgresql+asyncpg://user:password@localhost:5432/mydb"
