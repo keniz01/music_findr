@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Protocol, Iterable, List
+from typing import Protocol, Iterable
 import sqlparse
 from sqlparse.sql import (
     Statement, Function, Parenthesis, TokenList
