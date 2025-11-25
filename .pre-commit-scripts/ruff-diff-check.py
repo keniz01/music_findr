@@ -9,7 +9,6 @@ Usage (pre-commit):
 import subprocess
 import sys
 import json
-from pathlib import Path
 
 
 def get_changed_lines(filename: str):
