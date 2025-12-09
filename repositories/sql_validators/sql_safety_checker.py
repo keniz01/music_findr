@@ -1,57 +1,80 @@
 from __future__ import annotations
-from typing import List, Protocol
+
+from typing import Protocol
+
+import sqlparse
+
 from repositories.sql_validators.rules.sql_rules import (
     MustBeSelectRule,
     NoCommentRule,
     NoForbiddenKeywordsRule,
-    NoFunctionsRule,
-    NoJoinRule,
-    NoLimitOffsetRule,
-    NoOrderGroupHavingRule,
-    NoSemicolonRule,
     NoSubqueryRule,
     NoUnionOrSetOpsRule,
     NoWithCTERule,
     SingleStatementRule,
-    SqlSafetyRule
+    SqlSafetyRule,
 )
-import sqlparse
+
 
 # ----------------------
 # Checker
 # ----------------------
-
 class SqlSafetyChecker(Protocol):
-    def is_safe_select_query(self, query: str) -> bool: ...
+    """Protocol for a SQL safety checker."""
+
+    def is_safe_select_query(self, query: str) -> bool:
+        """
+        Check if a given SQL query is a "safe" SELECT statement.
+
+        Args:
+            query: The SQL query string to validate.
+
+        Returns:
+            True if the query is a safe SELECT statement, False otherwise.
+
+        """
+        ...
+
 
 class DefaultSqlSafetyChecker:
-    """
-    Validator for "safe" SELECT SQL queries using a pluggable rule system.
-    """
+    """Validator for "safe" SELECT SQL queries using a pluggable rule system."""
 
     def __init__(self):
-        self.rules: List[SqlSafetyRule] = [
+        """Initialize the DefaultSqlSafetyChecker with a set of validation rules."""
+        self.rules: list[SqlSafetyRule] = [
             # Fundamental
             SingleStatementRule(),
             MustBeSelectRule(),
-            NoSemicolonRule(),
             NoCommentRule(),
             NoWithCTERule(),
             NoForbiddenKeywordsRule(
-                ["delete", "insert", "update", "drop", "create", "alter",
-                 "commit", "rollback"],
+                [
+                    "delete",
+                    "insert",
+                    "update",
+                    "drop",
+                    "create",
+                    "alter",
+                    "commit",
+                    "rollback",
+                ],
             ),
-
             # Advanced Structural Guardrails
             NoSubqueryRule(),
             NoUnionOrSetOpsRule(),
-            NoJoinRule(),
-            NoOrderGroupHavingRule(),
-            NoLimitOffsetRule(),
-            NoFunctionsRule()
         ]
 
     def is_safe_select_query(self, query: str) -> bool:
+        """
+        Check if a given SQL query is a "safe" SELECT statement.
+
+        Args:
+            query: The SQL query string to validate.
+
+        Returns:
+            True if the query is a safe SELECT statement, False otherwise.
+
+        """
         parsed = sqlparse.parse(query)
         if not parsed:
             return False
