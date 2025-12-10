@@ -106,16 +106,6 @@ class NoOrderGroupHavingRule:
             lambda t: t.ttype == T.Keyword and t.value.lower() in forbidden
         )
 
-
-class NoLimitOffsetRule:
-    def check(self, stmt: Statement, raw: str) -> bool:
-        forbidden = {"limit", "offset", "fetch"}
-        return not any_token(
-            stmt,
-            lambda t: t.ttype == T.Keyword and t.value.lower() in forbidden
-        )
-
-
 class NoFunctionsRule:
     """Disallow ANY function call: SUM(), NOW(), LOWER(), etc."""
     def check(self, stmt: Statement, raw: str) -> bool:

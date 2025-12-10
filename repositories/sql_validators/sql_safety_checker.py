@@ -6,7 +6,6 @@ from repositories.sql_validators.rules.sql_rules import (
     NoForbiddenKeywordsRule,
     NoFunctionsRule,
     NoJoinRule,
-    NoLimitOffsetRule,
     NoOrderGroupHavingRule,
     NoSemicolonRule,
     NoSubqueryRule,
@@ -47,7 +46,6 @@ class DefaultSqlSafetyChecker:
             NoUnionOrSetOpsRule(),
             NoJoinRule(),
             NoOrderGroupHavingRule(),
-            NoLimitOffsetRule(),
             NoFunctionsRule()
         ]
 
